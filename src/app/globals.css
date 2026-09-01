@@ -21,6 +21,10 @@
 }
 
 /* 모바일 앱 기본 스타일 */
+html {
+  font-size: 18px;
+}
+
 html, body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
