@@ -77,13 +77,13 @@ export function CommentItem({ comment }: { comment: Comment }) {
             {isOwner && (
               editing ? (
                 <>
-                  <button onClick={handleEdit} className="text-[11px] font-semibold text-blue-500">저장</button>
-                  <button onClick={() => { setEditing(false); setEditText(comment.text); }} className="text-[11px] text-zinc-400">취소</button>
+                  <button onClick={handleEdit} className="text-xs font-semibold text-blue-500">저장</button>
+                  <button onClick={() => { setEditing(false); setEditText(comment.text); }} className="text-xs text-zinc-400">취소</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setEditing(true)} className="text-[11px] text-zinc-400 hover:text-zinc-600">수정</button>
-                  <button onClick={handleDelete} className="text-[11px] text-zinc-400 hover:text-red-500">삭제</button>
+                  <button onClick={() => setEditing(true)} className="text-xs text-zinc-400 hover:text-zinc-600">수정</button>
+                  <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
                 </>
               )
             )}
