@@ -17,12 +17,13 @@ export function BottomNav() {
     <nav className="flex shrink-0 flex-col border-t border-zinc-200 bg-background dark:border-zinc-800">
       <div className="flex h-14 items-center justify-around">
       {navItems.map(({ href, label, icon: Icon }) => {
-        const isActive = pathname === href;
+        const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
         return (
           <Link
             key={href}
             href={href}
-            className={`flex flex-col items-center gap-0.5 text-xs ${
+            prefetch={true}
+            className={`flex flex-col items-center gap-0.5 text-xs active:opacity-60 ${
               isActive
                 ? "text-foreground"
                 : "text-zinc-400 dark:text-zinc-500"
