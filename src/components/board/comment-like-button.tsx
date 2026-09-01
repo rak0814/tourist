@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/use-auth-store";
 
@@ -8,7 +8,7 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
   const user = useAuthStore((s) => s.user);
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const busyRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
@@ -25,34 +25,40 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
   }, [commentId, user]);
 
   const handleToggle = async () => {
-    if (!user || loading) return;
-    setLoading(true);
+    if (!user || busyRef.current) return;
+    busyRef.current = true;
 
-    if (liked) {
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikes((prev) => prev + (wasLiked ? -1 : 1));
+
+    if (wasLiked) {
       const { error } = await supabase
         .from("comment_likes")
         .delete()
         .eq("comment_id", commentId)
         .eq("user_id", user.id);
 
-      if (!error) {
-        await supabase.from("comments").update({ likes: likes - 1 }).eq("id", commentId);
-        setLikes(likes - 1);
-        setLiked(false);
+      if (error) {
+        setLiked(true);
+        setLikes((prev) => prev + 1);
+      } else {
+        supabase.from("comments").update({ likes: likes - 1 }).eq("id", commentId);
       }
     } else {
       const { error } = await supabase
         .from("comment_likes")
         .insert({ comment_id: commentId, user_id: user.id });
 
-      if (!error) {
-        await supabase.from("comments").update({ likes: likes + 1 }).eq("id", commentId);
-        setLikes(likes + 1);
-        setLiked(true);
+      if (error) {
+        setLiked(false);
+        setLikes((prev) => prev - 1);
+      } else {
+        supabase.from("comments").update({ likes: likes + 1 }).eq("id", commentId);
       }
     }
 
-    setLoading(false);
+    busyRef.current = false;
   };
 
   return (

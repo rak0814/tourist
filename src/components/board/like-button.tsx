@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/use-auth-store";
 
@@ -8,9 +8,8 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
   const user = useAuthStore((s) => s.user);
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const busyRef = useRef(false);
 
-  // 이미 좋아요 눌렀는지 확인
   useEffect(() => {
     if (!user) return;
 
@@ -26,37 +25,42 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
   }, [postId, user]);
 
   const handleToggle = async () => {
-    if (!user) return;
-    if (loading) return;
-    setLoading(true);
+    if (!user || busyRef.current) return;
+    busyRef.current = true;
 
-    if (liked) {
-      // 좋아요 취소
+    // 낙관적 업데이트: UI 먼저 변경
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikes((prev) => prev + (wasLiked ? -1 : 1));
+
+    // 서버 요청
+    if (wasLiked) {
       const { error } = await supabase
         .from("post_likes")
         .delete()
         .eq("post_id", postId)
         .eq("user_id", user.id);
 
-      if (!error) {
-        await supabase.from("posts").update({ likes: likes - 1 }).eq("id", postId);
-        setLikes(likes - 1);
-        setLiked(false);
+      if (error) {
+        setLiked(true);
+        setLikes((prev) => prev + 1);
+      } else {
+        supabase.from("posts").update({ likes: likes - 1 }).eq("id", postId);
       }
     } else {
-      // 좋아요
       const { error } = await supabase
         .from("post_likes")
         .insert({ post_id: postId, user_id: user.id });
 
-      if (!error) {
-        await supabase.from("posts").update({ likes: likes + 1 }).eq("id", postId);
-        setLikes(likes + 1);
-        setLiked(true);
+      if (error) {
+        setLiked(false);
+        setLikes((prev) => prev - 1);
+      } else {
+        supabase.from("posts").update({ likes: likes + 1 }).eq("id", postId);
       }
     }
 
-    setLoading(false);
+    busyRef.current = false;
   };
 
   return (
