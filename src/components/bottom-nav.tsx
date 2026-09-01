@@ -14,7 +14,8 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex h-14 shrink-0 items-center justify-around border-t border-zinc-200 bg-background pb-[var(--safe-area-bottom)] dark:border-zinc-800">
+    <nav className="flex shrink-0 flex-col border-t border-zinc-200 bg-background dark:border-zinc-800">
+      <div className="flex h-14 items-center justify-around">
       {navItems.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href;
         return (
@@ -32,6 +33,8 @@ export function BottomNav() {
           </Link>
         );
       })}
+      </div>
+      <div className="h-[var(--safe-area-bottom)]" />
     </nav>
   );
 }
