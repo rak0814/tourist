@@ -10,7 +10,7 @@ export const revalidate = 0;
 
 function UserAvatar({ size = "md" }: { size?: "sm" | "md" }) {
   const s = size === "sm" ? "h-8 w-8" : "h-10 w-10";
-  const icon = size === "sm" ? "h-5 w-5" : "h-6 w-6";
+  const icon = size === "sm" ? "h-8 w-8" : "h-10 w-10";
   return (
     <div className={`flex ${s} shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700`}>
       <svg className={`${icon} translate-y-1 text-zinc-400 dark:text-zinc-500`} viewBox="0 0 24 24" fill="currentColor">
