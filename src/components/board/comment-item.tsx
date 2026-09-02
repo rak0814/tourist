@@ -65,7 +65,7 @@ export function CommentItem({ comment }: { comment: Comment }) {
   };
 
   return (
-    <li className="py-3">
+    <li className="py-2.5">
       <div className="flex gap-3">
         <div className="mt-0.5">
           <UserAvatar />
