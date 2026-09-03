@@ -96,7 +96,7 @@ export function CommentItem({ comment }: { comment: Comment }) {
               className="mt-1 w-full resize-none rounded-lg border border-zinc-200 px-2 py-1.5 text-sm outline-none dark:border-zinc-700 dark:bg-transparent"
             />
           ) : (
-            <p className="mt-0.5 break-words text-sm text-zinc-700 dark:text-zinc-300">{comment.text}</p>
+            <p className="mt-0.5 break-words text-sm leading-snug text-zinc-700 dark:text-zinc-300">{comment.text}</p>
           )}
         </div>
         <div className="mt-0.5 shrink-0">
