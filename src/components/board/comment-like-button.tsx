@@ -24,6 +24,17 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
       });
   }, [commentId, user]);
 
+  const syncLikes = async () => {
+    const { count } = await supabase
+      .from("comment_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("comment_id", commentId);
+
+    const newCount = count ?? 0;
+    setLikes(newCount);
+    await supabase.from("comments").update({ likes: newCount }).eq("id", commentId);
+  };
+
   const handleToggle = async () => {
     if (!user || busyRef.current) return;
     busyRef.current = true;
@@ -43,7 +54,7 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
         setLiked(true);
         setLikes((prev) => prev + 1);
       } else {
-        supabase.from("comments").update({ likes: likes - 1 }).eq("id", commentId);
+        await syncLikes();
       }
     } else {
       const { error } = await supabase
@@ -54,7 +65,7 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
         setLiked(false);
         setLikes((prev) => prev - 1);
       } else {
-        supabase.from("comments").update({ likes: likes + 1 }).eq("id", commentId);
+        await syncLikes();
       }
     }
 

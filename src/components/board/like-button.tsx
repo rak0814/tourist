@@ -24,16 +24,25 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
       });
   }, [postId, user]);
 
+  const syncLikes = async () => {
+    const { count } = await supabase
+      .from("post_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", postId);
+
+    const newCount = count ?? 0;
+    setLikes(newCount);
+    await supabase.from("posts").update({ likes: newCount }).eq("id", postId);
+  };
+
   const handleToggle = async () => {
     if (!user || busyRef.current) return;
     busyRef.current = true;
 
-    // 낙관적 업데이트: UI 먼저 변경
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikes((prev) => prev + (wasLiked ? -1 : 1));
 
-    // 서버 요청
     if (wasLiked) {
       const { error } = await supabase
         .from("post_likes")
@@ -45,7 +54,7 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
         setLiked(true);
         setLikes((prev) => prev + 1);
       } else {
-        supabase.from("posts").update({ likes: likes - 1 }).eq("id", postId);
+        await syncLikes();
       }
     } else {
       const { error } = await supabase
@@ -56,7 +65,7 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
         setLiked(false);
         setLikes((prev) => prev - 1);
       } else {
-        supabase.from("posts").update({ likes: likes + 1 }).eq("id", postId);
+        await syncLikes();
       }
     }
 
