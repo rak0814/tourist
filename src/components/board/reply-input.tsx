@@ -39,7 +39,7 @@ export function ReplyInput({ postId, parentId }: { postId: string; parentId: str
   };
 
   return (
-    <div className="ml-10 flex items-center gap-2 border-l border-zinc-100 py-2 pl-3 dark:border-zinc-800">
+    <div className="ml-8 flex items-center gap-2 border-l border-zinc-100 py-2 pl-3 dark:border-zinc-800">
       <input
         type="text"
         placeholder="답글을 입력하세요"

@@ -31,7 +31,7 @@ export function CommentThread({ comments, postId }: { comments: Comment[]; postI
             <div key={comment.id}>
               <CommentItem comment={comment} />
               {getReplies(comment.id).length > 0 && (
-                <div className="ml-10 border-l border-zinc-100 dark:border-zinc-800">
+                <div className="ml-8 border-l border-zinc-100 dark:border-zinc-800">
                   {getReplies(comment.id).map((reply) => (
                     <CommentItem key={reply.id} comment={reply} isReply />
                   ))}
