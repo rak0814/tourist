@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PostActions } from "@/components/board/post-actions";
 import { LikeButton } from "@/components/board/like-button";
-import { CommentProvider, CommentThread, CommentInput } from "@/components/board/comment-list";
+import { CommentThread, CommentInput } from "@/components/board/comment-list";
 
 export const revalidate = 0;
 
@@ -45,7 +45,6 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
   };
 
   return (
-    <CommentProvider>
     <div className="flex h-full flex-col">
       {/* 헤더 */}
       <header className="relative flex h-12 shrink-0 items-center justify-center border-b border-zinc-200 px-4 pt-[var(--safe-area-top)] dark:border-zinc-800">
@@ -83,12 +82,11 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
         </div>
 
         {/* 댓글 목록 */}
-        <CommentThread comments={comments ?? []} />
+        <CommentThread comments={comments ?? []} postId={post.id} />
       </main>
 
       {/* 댓글 입력 (하단 고정) */}
       <CommentInput postId={post.id} />
     </div>
-    </CommentProvider>
   );
 }
