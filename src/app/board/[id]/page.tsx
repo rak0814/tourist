@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { CommentSection } from "@/components/board/comment-section";
 import { PostActions } from "@/components/board/post-actions";
 import { LikeButton } from "@/components/board/like-button";
-import { CommentItem } from "@/components/board/comment-item";
+import { CommentProvider, CommentThread, CommentInput } from "@/components/board/comment-list";
 
 export const revalidate = 0;
 
@@ -46,6 +45,7 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
   };
 
   return (
+    <CommentProvider>
     <div className="flex h-full flex-col">
       {/* 헤더 */}
       <header className="relative flex h-12 shrink-0 items-center justify-center border-b border-zinc-200 px-4 pt-[var(--safe-area-top)] dark:border-zinc-800">
@@ -82,24 +82,13 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
           <LikeButton postId={post.id} initialLikes={post.likes} />
         </div>
 
-        {/* 댓글 영역 */}
-        <div className="px-4 py-3">
-          <p className="text-sm font-bold">댓글 {comments?.length ?? 0}</p>
-
-          {!comments || comments.length === 0 ? (
-            <p className="mt-4 text-center text-xs text-zinc-300">아직 댓글이 없습니다.</p>
-          ) : (
-            <ul className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
-              {comments.map((comment) => (
-                <CommentItem key={comment.id} comment={comment} />
-              ))}
-            </ul>
-          )}
-        </div>
+        {/* 댓글 목록 */}
+        <CommentThread comments={comments ?? []} />
       </main>
 
-      {/* 댓글 입력 */}
-      <CommentSection postId={post.id} />
+      {/* 댓글 입력 (하단 고정) */}
+      <CommentInput postId={post.id} />
     </div>
+    </CommentProvider>
   );
 }
