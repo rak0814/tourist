@@ -57,7 +57,7 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
       </header>
 
       {/* 콘텐츠 */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="min-h-0 flex-1 overflow-y-auto">
         {/* 작성자 정보 */}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
