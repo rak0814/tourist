@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { PostActions } from "@/components/board/post-actions";
 import { LikeButton } from "@/components/board/like-button";
 import { CommentThread, CommentInput } from "@/components/board/comment-list";
+import { ViewCounter } from "@/components/board/view-counter";
 
 export const revalidate = 0;
 
@@ -21,9 +22,6 @@ function UserAvatar({ size = "md" }: { size?: "sm" | "md" }) {
 
 export default async function BoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-
-  // 조회수 증가
-  await supabase.rpc("increment_views", { post_id: id }).then(() => {});
 
   const { data: post } = await supabase
     .from("posts")
@@ -55,6 +53,9 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
         </Link>
         <h1 className="text-base font-semibold">게시글</h1>
       </header>
+
+      {/* 조회수 증가 */}
+      <ViewCounter postId={post.id} />
 
       {/* 콘텐츠 */}
       <main className="min-h-0 flex-1 overflow-y-auto">
