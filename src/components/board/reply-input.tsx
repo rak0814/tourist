@@ -11,9 +11,12 @@ export function ReplyInput({ postId, parentId }: { postId: string; parentId: str
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  if (!user) return null;
-
   const handleSubmit = async () => {
+    if (!user) {
+      alert("로그인이 필요합니다.");
+      router.push("/login");
+      return;
+    }
     if (!text.trim()) return;
     setSubmitting(true);
 
@@ -42,15 +45,16 @@ export function ReplyInput({ postId, parentId }: { postId: string; parentId: str
     <div className="ml-8 flex items-center gap-2 border-l border-zinc-100 py-2 pl-3 dark:border-zinc-800">
       <input
         type="text"
-        placeholder="답글을 입력하세요"
+        placeholder={user ? "답글을 입력하세요" : "로그인 후 답글 작성"}
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-        className="flex-1 rounded-full bg-zinc-100 px-3 py-1.5 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+        disabled={!user}
+        className="flex-1 rounded-full bg-zinc-100 px-3 py-1.5 text-sm outline-none placeholder:text-zinc-400 disabled:opacity-50 dark:bg-zinc-900"
       />
       <button
         onClick={handleSubmit}
-        disabled={!text.trim() || submitting}
+        disabled={!text.trim() || !user || submitting}
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
       >
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
