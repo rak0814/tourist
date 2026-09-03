@@ -81,7 +81,7 @@ export function CommentItem({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="text-sm font-semibold">{comment.author}</span>
+            <span className="text-xs font-semibold">{comment.author}</span>
             <span className="text-xs text-zinc-400">{formatDate(comment.created_at)}</span>
             {isOwner && (
               editing ? (
