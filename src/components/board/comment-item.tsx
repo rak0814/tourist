@@ -6,10 +6,12 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { CommentLikeButton } from "./comment-like-button";
 
-function UserAvatar() {
+function UserAvatar({ small }: { small?: boolean }) {
+  const s = small ? "h-6 w-6" : "h-8 w-8";
+  const icon = small ? "h-6 w-6" : "h-8 w-8";
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
-      <svg className="h-8 w-8 translate-y-1 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="currentColor">
+    <div className={`flex ${s} shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700`}>
+      <svg className={`${icon} translate-y-1 text-zinc-400 dark:text-zinc-500`} viewBox="0 0 24 24" fill="currentColor">
         <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clipRule="evenodd" />
       </svg>
     </div>
@@ -22,6 +24,7 @@ interface Comment {
   text: string;
   likes: number;
   user_id: string | null;
+  parent_id?: string | null;
   created_at: string;
 }
 
@@ -30,7 +33,13 @@ function formatDate(dateStr: string) {
   return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
 }
 
-export function CommentItem({ comment }: { comment: Comment }) {
+export function CommentItem({
+  comment,
+  isReply,
+}: {
+  comment: Comment;
+  isReply?: boolean;
+}) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [editing, setEditing] = useState(false);
@@ -65,10 +74,10 @@ export function CommentItem({ comment }: { comment: Comment }) {
   };
 
   return (
-    <li className="py-3">
-      <div className="flex gap-3">
+    <div className={`py-3 ${isReply ? "pl-3" : ""}`}>
+      <div className="flex gap-2.5">
         <div className="mt-0.5">
-          <UserAvatar />
+          <UserAvatar small={isReply} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -103,6 +112,6 @@ export function CommentItem({ comment }: { comment: Comment }) {
           <CommentLikeButton commentId={comment.id} initialLikes={comment.likes} />
         </div>
       </div>
-    </li>
+    </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
 import { CommentItem } from "./comment-item";
 import { CommentSection } from "./comment-section";
+import { ReplyInput } from "./reply-input";
 
 interface Comment {
   id: string;
@@ -14,32 +14,7 @@ interface Comment {
   created_at: string;
 }
 
-interface ReplyTo {
-  id: string;
-  author: string;
-}
-
-const ReplyContext = createContext<{
-  replyTo: ReplyTo | null;
-  setReplyTo: (r: ReplyTo | null) => void;
-}>({ replyTo: null, setReplyTo: () => {} });
-
-export function useReplyContext() {
-  return useContext(ReplyContext);
-}
-
-export function CommentProvider({ children }: { children: React.ReactNode }) {
-  const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
-  return (
-    <ReplyContext.Provider value={{ replyTo, setReplyTo }}>
-      {children}
-    </ReplyContext.Provider>
-  );
-}
-
-export function CommentThread({ comments }: { comments: Comment[] }) {
-  const { setReplyTo } = useReplyContext();
-
+export function CommentThread({ comments, postId }: { comments: Comment[]; postId: string }) {
   const rootComments = comments.filter((c) => !c.parent_id);
   const replies = comments.filter((c) => c.parent_id);
   const getReplies = (parentId: string) => replies.filter((c) => c.parent_id === parentId);
@@ -54,10 +29,7 @@ export function CommentThread({ comments }: { comments: Comment[] }) {
         <div className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
           {rootComments.map((comment) => (
             <div key={comment.id}>
-              <CommentItem
-                comment={comment}
-                onReply={() => setReplyTo({ id: comment.id, author: comment.author })}
-              />
+              <CommentItem comment={comment} />
               {getReplies(comment.id).length > 0 && (
                 <div className="ml-10 border-l border-zinc-100 dark:border-zinc-800">
                   {getReplies(comment.id).map((reply) => (
@@ -65,6 +37,7 @@ export function CommentThread({ comments }: { comments: Comment[] }) {
                   ))}
                 </div>
               )}
+              <ReplyInput postId={postId} parentId={comment.id} />
             </div>
           ))}
         </div>
@@ -74,13 +47,5 @@ export function CommentThread({ comments }: { comments: Comment[] }) {
 }
 
 export function CommentInput({ postId }: { postId: string }) {
-  const { replyTo, setReplyTo } = useReplyContext();
-
-  return (
-    <CommentSection
-      postId={postId}
-      replyTo={replyTo}
-      onCancelReply={() => setReplyTo(null)}
-    />
-  );
+  return <CommentSection postId={postId} />;
 }
