@@ -146,7 +146,7 @@ export default function ChatListPage() {
             <p className="text-sm text-zinc-400">로그인 후 이용할 수 있습니다.</p>
             <button
               onClick={() => router.push("/login")}
-              className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+              className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
             >
               로그인
             </button>
@@ -177,7 +177,7 @@ export default function ChatListPage() {
           <button
             onClick={startChat}
             disabled={!searchEmail.trim()}
-            className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
           >
             시작
           </button>
