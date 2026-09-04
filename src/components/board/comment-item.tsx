@@ -86,7 +86,7 @@ export function CommentItem({
             {isOwner && (
               editing ? (
                 <>
-                  <button onClick={handleEdit} className="text-xs font-semibold text-blue-600">저장</button>
+                  <button onClick={handleEdit} className="text-xs font-semibold text-primary">저장</button>
                   <button onClick={() => { setEditing(false); setEditText(comment.text); }} className="text-xs text-zinc-400">취소</button>
                 </>
               ) : (
