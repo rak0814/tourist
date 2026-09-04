@@ -49,7 +49,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
 
       <Link
         href="/board/write"
-        className="absolute right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background shadow-lg active:scale-95 transition-transform"
+        className="absolute right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg active:scale-95 transition-transform"
         style={{ bottom: "calc(3.5rem + var(--safe-area-bottom) + 1rem)" }}
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
