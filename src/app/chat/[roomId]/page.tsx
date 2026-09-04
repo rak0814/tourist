@@ -12,6 +12,18 @@ interface Message {
   created_at: string;
 }
 
+function highlightText(text: string, query: string) {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <mark key={i} className="rounded bg-yellow-300/80 px-0.5 text-inherit">{part}</mark>
+    ) : (
+      part
+    )
+  );
+}
+
 export default function ChatRoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const router = useRouter();
@@ -20,6 +32,8 @@ export default function ChatRoomPage() {
   const [text, setText] = useState("");
   const [otherNickname, setOtherNickname] = useState("상대방");
   const [sending, setSending] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // 채팅방 정보 + 메시지 로드
@@ -114,13 +128,35 @@ export default function ChatRoomPage() {
   return (
     <div className="flex h-full flex-col">
       {/* 헤더 */}
-      <header className="relative flex h-12 shrink-0 items-center justify-center border-b border-zinc-200 px-4 pt-[var(--safe-area-top)] dark:border-zinc-800">
-        <button onClick={() => router.push("/chat")} className="absolute left-4 text-zinc-500">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <h1 className="text-base font-semibold">{otherNickname}</h1>
+      <header className="shrink-0 border-b border-zinc-200 pt-[var(--safe-area-top)] dark:border-zinc-800">
+        <div className="relative flex h-12 items-center justify-center px-4">
+          <button onClick={() => router.push("/chat")} className="absolute left-4 text-zinc-500">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          <h1 className="text-base font-semibold">{otherNickname}</h1>
+          <button onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(""); }} className="absolute right-4 text-zinc-500">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </button>
+        </div>
+        {searchOpen && (
+          <div className="flex items-center gap-2 px-4 pb-2">
+            <input
+              type="text"
+              placeholder="메시지 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+              className="flex-1 rounded-full bg-zinc-100 px-4 py-1.5 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+            />
+            <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="text-xs text-zinc-500">
+              취소
+            </button>
+          </div>
+        )}
       </header>
 
       {/* 메시지 영역 */}
@@ -129,7 +165,9 @@ export default function ChatRoomPage() {
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
         ) : (
           <div className="space-y-2">
-            {messages.map((msg) => {
+            {messages
+              .filter((msg) => !searchQuery || msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map((msg) => {
               const isMine = msg.sender_id === user.id;
               return (
                 <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
@@ -148,7 +186,7 @@ export default function ChatRoomPage() {
                           : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
                       }`}
                     >
-                      {msg.text}
+                      {searchQuery ? highlightText(msg.text, searchQuery) : msg.text}
                     </div>
                     <span className="shrink-0 text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
                   </div>
