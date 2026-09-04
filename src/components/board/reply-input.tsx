@@ -50,7 +50,7 @@ export function ReplyInput({ postId, parentId }: { postId: string; parentId: str
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         disabled={!user}
-        className="flex-1 rounded-full bg-zinc-100 px-3 py-1.5 text-sm outline-none placeholder:text-zinc-400 disabled:opacity-50 dark:bg-zinc-900"
+        className="flex-1 rounded-full bg-zinc-100 px-3 py-1.5 text-xs outline-none placeholder:text-zinc-400 disabled:opacity-50 dark:bg-zinc-900"
       />
       <button
         onClick={handleSubmit}
