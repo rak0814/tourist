@@ -67,7 +67,7 @@ export default function EditPage() {
         <button
           onClick={handleSubmit}
           disabled={!title.trim() || !content.trim() || submitting}
-          className="absolute right-4 text-sm font-semibold text-blue-500 disabled:text-zinc-300"
+          className="absolute right-4 text-sm font-semibold text-blue-600 disabled:text-zinc-300"
         >
           {submitting ? "저장 중..." : "저장"}
         </button>
