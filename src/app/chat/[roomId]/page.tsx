@@ -144,7 +144,7 @@ export default function ChatRoomPage() {
                     <div
                       className={`rounded-2xl px-3.5 py-2 text-sm leading-snug ${
                         isMine
-                          ? "rounded-br-sm bg-indigo-500 text-white"
+                          ? "rounded-br-sm bg-blue-600 text-white"
                           : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
                       }`}
                     >
@@ -174,7 +174,7 @@ export default function ChatRoomPage() {
           <button
             onClick={handleSend}
             disabled={!text.trim() || sending}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
