@@ -61,7 +61,7 @@ export default function WritePage() {
         <button
           onClick={handleSubmit}
           disabled={!title.trim() || !content.trim() || submitting}
-          className="text-sm font-semibold text-blue-600 disabled:text-zinc-300"
+          className="text-sm font-semibold text-primary disabled:text-zinc-300"
         >
           {submitting ? "등록 중..." : "등록"}
         </button>
