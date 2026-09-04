@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { BoardList } from "@/components/board/board-list";
-import { BoardSearch } from "@/components/board/board-search";
+import { BoardHeader } from "@/components/board/board-header";
 import { supabase } from "@/lib/supabase";
 
 export const revalidate = 0;
@@ -32,12 +32,9 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-12 shrink-0 items-center justify-center border-b border-zinc-200 pt-[var(--safe-area-top)] dark:border-zinc-800">
-        <h1 className="text-base font-semibold">게시판</h1>
-      </header>
+      <BoardHeader searchQuery={q} />
 
       <main className="flex-1 overflow-y-auto">
-        <BoardSearch />
         {formatted.length === 0 ? (
           <p className="py-10 text-center text-sm text-zinc-400">
             {q ? "검색 결과가 없습니다." : "게시글이 없습니다."}
