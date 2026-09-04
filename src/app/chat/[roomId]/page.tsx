@@ -1,1 +1,180 @@
+"use client";
 
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/stores/use-auth-store";
+
+interface Message {
+  id: string;
+  sender_id: string;
+  text: string;
+  created_at: string;
+}
+
+export default function ChatRoomPage() {
+  const { roomId } = useParams<{ roomId: string }>();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState("");
+  const [otherNickname, setOtherNickname] = useState("상대방");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // 채팅방 정보 + 메시지 로드
+  useEffect(() => {
+    if (!user) return;
+
+    const loadRoom = async () => {
+      // 채팅방 정보
+      const { data: room } = await supabase
+        .from("chat_rooms")
+        .select("*")
+        .eq("id", roomId)
+        .single();
+
+      if (!room) return;
+
+      const otherId = room.user1_id === user.id ? room.user2_id : room.user1_id;
+      const { data: otherUser } = await supabase
+        .from("profiles")
+        .select("nickname")
+        .eq("id", otherId)
+        .single();
+
+      if (otherUser) setOtherNickname(otherUser.nickname);
+
+      // 메시지 로드
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("room_id", roomId)
+        .order("created_at", { ascending: true });
+
+      if (msgs) setMessages(msgs);
+    };
+
+    loadRoom();
+
+    // 실시간 구독
+    const channel = supabase
+      .channel(`room-${roomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as Message]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [roomId, user]);
+
+  // 새 메시지 올 때 자동 스크롤
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!user || !text.trim() || sending) return;
+    setSending(true);
+
+    await supabase.from("messages").insert({
+      room_id: roomId,
+      sender_id: user.id,
+      text: text.trim(),
+    });
+
+    setText("");
+    setSending(false);
+  };
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  if (!user) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-zinc-400">로그인이 필요합니다.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* 헤더 */}
+      <header className="relative flex h-12 shrink-0 items-center justify-center border-b border-zinc-200 px-4 pt-[var(--safe-area-top)] dark:border-zinc-800">
+        <button onClick={() => router.push("/chat")} className="absolute left-4 text-zinc-500">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <h1 className="text-base font-semibold">{otherNickname}</h1>
+      </header>
+
+      {/* 메시지 영역 */}
+      <main className="flex-1 overflow-y-auto bg-zinc-50 px-4 py-3 dark:bg-zinc-950">
+        {messages.length === 0 ? (
+          <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
+        ) : (
+          <div className="space-y-2">
+            {messages.map((msg) => {
+              const isMine = msg.sender_id === user.id;
+              return (
+                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                  <div className={`flex max-w-[75%] items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
+                    <div
+                      className={`rounded-2xl px-3.5 py-2 text-sm leading-snug ${
+                        isMine
+                          ? "rounded-br-sm bg-indigo-500 text-white"
+                          : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                    <span className="shrink-0 text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </main>
+
+      {/* 메시지 입력 */}
+      <div className="shrink-0 border-t border-zinc-200 bg-background px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="메시지를 입력하세요"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            className="flex-1 rounded-full bg-zinc-100 px-4 py-2 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+          />
+          <button
+            onClick={handleSend}
+            disabled={!text.trim() || sending}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
