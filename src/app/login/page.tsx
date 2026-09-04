@@ -99,14 +99,14 @@ export default function LoginPage() {
   };
 
   const inputClass =
-    "mt-1.5 w-full rounded-[10px] border-[1.5px] border-[#e0e0e0] bg-[#fafafa] px-3.5 py-3 text-sm outline-none transition-colors focus:border-indigo-500 focus:bg-white dark:border-zinc-700 dark:bg-zinc-800 dark:focus:border-indigo-400 dark:focus:bg-zinc-900";
+    "mt-1.5 w-full rounded-[10px] border-[1.5px] border-[#e0e0e0] bg-[#fafafa] px-3.5 py-3 text-sm outline-none transition-colors focus:border-blue-600 focus:bg-white dark:border-zinc-700 dark:bg-zinc-800 dark:focus:border-blue-500 dark:focus:bg-zinc-900";
 
   return (
     <div className="flex h-full flex-col items-center overflow-y-auto bg-[#f5f5f5] px-5 py-10 dark:bg-black">
       <div className="w-full max-w-[400px]">
         {/* 로고 헤더 */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-2xl font-extrabold text-white">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-extrabold text-white">
             M
           </div>
           <h1 className="text-[22px] font-bold text-[#111] dark:text-zinc-100">My App</h1>
@@ -157,11 +157,11 @@ export default function LoginPage() {
               <button
                 onClick={handleLogin}
                 disabled={!loginEmail.trim() || !loginPassword.trim() || submitting}
-                className="mt-2 w-full rounded-[10px] bg-gradient-to-br from-indigo-500 to-violet-500 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="mt-2 w-full rounded-[10px] bg-blue-600 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 로그인
               </button>
-              <button onClick={() => switchTab("forgot")} className="mt-3 block w-full text-center text-[13px] text-indigo-500 hover:underline">
+              <button onClick={() => switchTab("forgot")} className="mt-3 block w-full text-center text-[13px] text-blue-600 hover:underline">
                 비밀번호를 잊으셨나요?
               </button>
             </div>
@@ -188,18 +188,18 @@ export default function LoginPage() {
               </div>
               <div className="space-y-1.5 pt-1">
                 <label className="flex items-center gap-2 text-xs text-[#555] dark:text-zinc-400">
-                  <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-[18px] w-[18px] accent-indigo-500" />
-                  <span><a href="/terms" target="_blank" className="text-indigo-500 underline">이용약관</a>에 동의합니다 (필수)</span>
+                  <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-[18px] w-[18px] accent-blue-600" />
+                  <span><a href="/terms" target="_blank" className="text-blue-600 underline">이용약관</a>에 동의합니다 (필수)</span>
                 </label>
                 <label className="flex items-center gap-2 text-xs text-[#555] dark:text-zinc-400">
-                  <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} className="h-[18px] w-[18px] accent-indigo-500" />
-                  <span><a href="/privacy" target="_blank" className="text-indigo-500 underline">개인정보처리방침</a>에 동의합니다 (필수)</span>
+                  <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} className="h-[18px] w-[18px] accent-blue-600" />
+                  <span><a href="/privacy" target="_blank" className="text-blue-600 underline">개인정보처리방침</a>에 동의합니다 (필수)</span>
                 </label>
               </div>
               <button
                 onClick={handleSignup}
                 disabled={!nickname.trim() || !signupEmail.trim() || !signupPassword.trim() || !signupPasswordConfirm.trim() || submitting}
-                className="mt-2 w-full rounded-[10px] bg-gradient-to-br from-indigo-500 to-violet-500 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="mt-2 w-full rounded-[10px] bg-blue-600 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 회원가입
               </button>
@@ -216,11 +216,11 @@ export default function LoginPage() {
               <button
                 onClick={handleForgot}
                 disabled={!forgotEmail.trim() || submitting}
-                className="mt-2 w-full rounded-[10px] bg-gradient-to-br from-indigo-500 to-violet-500 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="mt-2 w-full rounded-[10px] bg-blue-600 py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 비밀번호 재설정 메일 보내기
               </button>
-              <button onClick={() => switchTab("login")} className="mt-3 block w-full text-center text-[13px] text-indigo-500 hover:underline">
+              <button onClick={() => switchTab("login")} className="mt-3 block w-full text-center text-[13px] text-blue-600 hover:underline">
                 로그인으로 돌아가기
               </button>
             </div>
