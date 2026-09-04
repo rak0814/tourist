@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -12,12 +12,13 @@ interface Message {
   created_at: string;
 }
 
-function highlightText(text: string, query: string) {
+function highlightText(text: string, query: string, isActive: boolean) {
   if (!query) return text;
-  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <mark key={i} className="rounded bg-yellow-300/80 px-0.5 text-inherit">{part}</mark>
+      <mark key={i} className={`rounded px-0.5 text-inherit ${isActive ? "bg-orange-400/80" : "bg-yellow-300/80"}`}>{part}</mark>
     ) : (
       part
     )
@@ -34,14 +35,55 @@ export default function ChatRoomPage() {
   const [sending, setSending] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const msgRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // 검색 매칭 메시지 ID 목록
+  const matchedIds = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return messages
+      .filter((msg) => msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
+      .map((msg) => msg.id);
+  }, [messages, searchQuery]);
+
+  // 검색어 변경 시 마지막 매칭으로 이동
+  useEffect(() => {
+    if (matchedIds.length > 0) {
+      const lastIndex = matchedIds.length - 1;
+      setCurrentMatchIndex(lastIndex);
+      scrollToMessage(matchedIds[lastIndex]);
+    } else {
+      setCurrentMatchIndex(0);
+    }
+  }, [matchedIds]);
+
+  const scrollToMessage = useCallback((msgId: string) => {
+    const el = msgRefs.current.get(msgId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
+
+  const goToPrev = () => {
+    if (matchedIds.length === 0) return;
+    const newIndex = currentMatchIndex > 0 ? currentMatchIndex - 1 : matchedIds.length - 1;
+    setCurrentMatchIndex(newIndex);
+    scrollToMessage(matchedIds[newIndex]);
+  };
+
+  const goToNext = () => {
+    if (matchedIds.length === 0) return;
+    const newIndex = currentMatchIndex < matchedIds.length - 1 ? currentMatchIndex + 1 : 0;
+    setCurrentMatchIndex(newIndex);
+    scrollToMessage(matchedIds[newIndex]);
+  };
 
   // 채팅방 정보 + 메시지 로드
   useEffect(() => {
     if (!user) return;
 
     const loadRoom = async () => {
-      // 채팅방 정보
       const { data: room } = await supabase
         .from("chat_rooms")
         .select("*")
@@ -59,7 +101,6 @@ export default function ChatRoomPage() {
 
       if (otherUser) setOtherNickname(otherUser.nickname);
 
-      // 메시지 로드
       const { data: msgs } = await supabase
         .from("messages")
         .select("*")
@@ -71,7 +112,6 @@ export default function ChatRoomPage() {
 
     loadRoom();
 
-    // 실시간 구독
     const channel = supabase
       .channel(`room-${roomId}`)
       .on(
@@ -93,10 +133,12 @@ export default function ChatRoomPage() {
     };
   }, [roomId, user]);
 
-  // 새 메시지 올 때 자동 스크롤
+  // 새 메시지 올 때 자동 스크롤 (검색 중이 아닐 때만)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!searchOpen) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, searchOpen]);
 
   const handleSend = async () => {
     if (!user || !text.trim() || sending) return;
@@ -165,12 +207,16 @@ export default function ChatRoomPage() {
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
         ) : (
           <div className="space-y-2">
-            {messages
-              .filter((msg) => !searchQuery || msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
-              .map((msg) => {
+            {messages.map((msg) => {
               const isMine = msg.sender_id === user.id;
+              const isMatch = searchQuery && matchedIds.includes(msg.id);
+              const isActiveMatch = isMatch && matchedIds[currentMatchIndex] === msg.id;
               return (
-                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={msg.id}
+                  ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
+                >
                   <div className={`flex max-w-[75%] items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
                     {!isMine && (
                       <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
@@ -184,9 +230,9 @@ export default function ChatRoomPage() {
                         isMine
                           ? "rounded-br-sm bg-blue-600 text-white"
                           : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
-                      }`}
+                      } ${isActiveMatch ? "ring-2 ring-orange-400" : ""}`}
                     >
-                      {searchQuery ? highlightText(msg.text, searchQuery) : msg.text}
+                      {searchQuery && isMatch ? highlightText(msg.text, searchQuery, !!isActiveMatch) : msg.text}
                     </div>
                     <span className="shrink-0 text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
                   </div>
@@ -198,28 +244,51 @@ export default function ChatRoomPage() {
         )}
       </main>
 
-      {/* 메시지 입력 */}
-      <div className="shrink-0 border-t border-zinc-200 bg-background px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="메시지를 입력하세요"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 rounded-full bg-zinc-100 px-4 py-2 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!text.trim() || sending}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
-            </svg>
-          </button>
+      {/* 검색 네비게이션 바 */}
+      {searchOpen && searchQuery && (
+        <div className="flex shrink-0 items-center justify-between border-t border-zinc-200 bg-background px-4 py-2 dark:border-zinc-800">
+          <span className="text-xs text-zinc-500">
+            {matchedIds.length > 0 ? `${currentMatchIndex + 1}/${matchedIds.length}` : "결과 없음"}
+          </span>
+          <div className="flex items-center gap-2">
+            <button onClick={goToPrev} disabled={matchedIds.length === 0} className="rounded-full p-1.5 text-zinc-500 active:bg-zinc-100 disabled:opacity-30 dark:active:bg-zinc-800">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+              </svg>
+            </button>
+            <button onClick={goToNext} disabled={matchedIds.length === 0} className="rounded-full p-1.5 text-zinc-500 active:bg-zinc-100 disabled:opacity-30 dark:active:bg-zinc-800">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* 메시지 입력 */}
+      {!searchOpen && (
+        <div className="shrink-0 border-t border-zinc-200 bg-background px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="메시지를 입력하세요"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className="flex-1 rounded-full bg-zinc-100 px-4 py-2 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!text.trim() || sending}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
