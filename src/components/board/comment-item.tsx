@@ -87,6 +87,14 @@ export function CommentItem({
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <span className="text-xs font-semibold">{comment.author}</span>
             <span className="text-xs text-zinc-400">{formatDate(comment.created_at)}</span>
+            {showReplyButton && postId && !editing && (
+              <button
+                onClick={() => router.push(`/board/${postId}/comment/${comment.id}`)}
+                className="text-xs text-zinc-400 hover:text-zinc-600"
+              >
+                답글
+              </button>
+            )}
             {isOwner && (
               editing ? (
                 <>
@@ -99,14 +107,6 @@ export function CommentItem({
                   <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
                 </>
               )
-            )}
-            {showReplyButton && postId && !editing && (
-              <button
-                onClick={() => router.push(`/board/${postId}/comment/${comment.id}`)}
-                className="text-xs text-zinc-400 hover:text-zinc-600"
-              >
-                답글
-              </button>
             )}
           </div>
           {editing ? (
