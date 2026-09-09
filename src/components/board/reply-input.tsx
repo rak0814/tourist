@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/use-auth-store";
 
-export function ReplyInput({ postId, parentId }: { postId: string; parentId: string }) {
+export function ReplyInput({ postId, parentId, isFixed }: { postId: string; parentId: string; isFixed?: boolean }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [text, setText] = useState("");
@@ -40,6 +40,33 @@ export function ReplyInput({ postId, parentId }: { postId: string; parentId: str
     setSubmitting(false);
     router.refresh();
   };
+
+  if (isFixed) {
+    return (
+      <div className="shrink-0 border-t border-zinc-200 px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder={user ? "답글을 입력하세요" : "로그인 후 답글을 작성하세요"}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            disabled={!user}
+            className="flex-1 rounded-full bg-zinc-100 px-4 py-2 text-sm outline-none placeholder:text-zinc-400 disabled:opacity-50 dark:bg-zinc-900"
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={!text.trim() || !user || submitting}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ml-8 flex items-center gap-2 border-l border-zinc-100 py-2 pl-3 dark:border-zinc-800">
