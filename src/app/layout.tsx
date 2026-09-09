@@ -49,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </div>
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.addEventListener('load',function(){var s=document.getElementById('splash');if(s){setTimeout(function(){s.classList.add('hide');setTimeout(function(){s.remove()},300)},500)}})`,
+            __html: `window.addEventListener('load',function(){var s=document.getElementById('splash');if(s){setTimeout(function(){s.classList.add('hide')},500)}})`,
           }}
         />
         <Providers>
