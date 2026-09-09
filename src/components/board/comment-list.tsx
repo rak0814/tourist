@@ -27,19 +27,30 @@ export function CommentThread({ comments, postId }: { comments: Comment[]; postI
         <p className="mt-4 text-center text-xs text-zinc-300">아직 댓글이 없습니다.</p>
       ) : (
         <div className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
-          {rootComments.map((comment) => (
-            <div key={comment.id}>
-              <CommentItem comment={comment} />
-              {getReplies(comment.id).length > 0 && (
-                <div className="ml-8 border-l border-zinc-100 dark:border-zinc-800">
-                  {getReplies(comment.id).map((reply) => (
-                    <CommentItem key={reply.id} comment={reply} isReply />
-                  ))}
-                </div>
-              )}
-              <ReplyInput postId={postId} parentId={comment.id} />
-            </div>
-          ))}
+          {rootComments.map((comment) => {
+            const commentReplies = getReplies(comment.id);
+            const hasReplies = commentReplies.length > 0;
+
+            return (
+              <div key={comment.id}>
+                <CommentItem
+                  comment={comment}
+                  postId={postId}
+                  showReplyButton={!hasReplies}
+                />
+                {hasReplies && (
+                  <>
+                    <div className="ml-8 border-l border-zinc-100 dark:border-zinc-800">
+                      {commentReplies.map((reply) => (
+                        <CommentItem key={reply.id} comment={reply} isReply />
+                      ))}
+                    </div>
+                    <ReplyInput postId={postId} parentId={comment.id} />
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

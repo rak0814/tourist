@@ -36,9 +36,13 @@ function formatDate(dateStr: string) {
 export function CommentItem({
   comment,
   isReply,
+  postId,
+  showReplyButton,
 }: {
   comment: Comment;
   isReply?: boolean;
+  postId?: string;
+  showReplyButton?: boolean;
 }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -95,6 +99,14 @@ export function CommentItem({
                   <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
                 </>
               )
+            )}
+            {showReplyButton && postId && !editing && (
+              <button
+                onClick={() => router.push(`/board/${postId}/comment/${comment.id}`)}
+                className="text-xs text-zinc-400 hover:text-zinc-600"
+              >
+                답글
+              </button>
             )}
           </div>
           {editing ? (
