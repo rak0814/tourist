@@ -83,7 +83,9 @@ export default function LoginPage() {
     setSubmitting(true);
     setMessage(null);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim());
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+      redirectTo: "https://tourist-zeta-six.vercel.app/reset-password",
+    });
 
     if (error) {
       setMessage({ text: error.message, type: "error" });
