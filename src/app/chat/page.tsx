@@ -168,7 +168,11 @@ export default function ChatListPage() {
             className="absolute right-4 text-zinc-500 active:text-zinc-800 dark:active:text-zinc-200"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              {showNewChat ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              )}
             </svg>
           </button>
         </div>
