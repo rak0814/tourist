@@ -1,5 +1,6 @@
 import { BottomNav } from "@/components/bottom-nav";
 import { HeaderActions } from "@/components/header-actions";
+import { KakaoMap } from "@/components/kakao-map";
 
 export default function Home() {
   return (
@@ -10,9 +11,9 @@ export default function Home() {
         <HeaderActions />
       </header>
 
-      {/* 콘텐츠 */}
-      <main className="flex-1 overflow-y-auto p-4">
-        <p className="text-zinc-500">여기에 콘텐츠를 추가하세요.</p>
+      {/* 지도 */}
+      <main className="min-h-0 flex-1">
+        <KakaoMap />
       </main>
 
       {/* 하단 네비게이션 */}
