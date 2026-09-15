@@ -177,7 +177,7 @@ export default function ChatListPage() {
           </button>
         </div>
         {showNewChat && (
-          <div className="flex items-center gap-2 px-4 py-2">
+          <div className="flex items-center gap-2 px-4 pb-2">
             <input
               type="email"
               placeholder="상대방 이메일로 채팅 시작"
@@ -185,7 +185,7 @@ export default function ChatListPage() {
               onChange={(e) => setSearchEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && startChat()}
               autoFocus
-              className="flex-1 rounded-full bg-zinc-100 px-4 py-2 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-800"
+              className="flex-1 rounded-full bg-zinc-100 px-4 py-1.5 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
             />
             <button
               onClick={startChat}
