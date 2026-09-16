@@ -10,6 +10,7 @@ interface Message {
   sender_id: string;
   text: string;
   created_at: string;
+  is_read: boolean;
 }
 
 function highlightText(text: string, query: string, isActive: boolean) {
@@ -108,6 +109,14 @@ export default function ChatRoomPage() {
         .order("created_at", { ascending: true });
 
       if (msgs) setMessages(msgs);
+
+      // 상대방 메시지 읽음 처리
+      await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("room_id", roomId)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
     };
 
     loadRoom();
@@ -122,8 +131,32 @@ export default function ChatRoomPage() {
           table: "messages",
           filter: `room_id=eq.${roomId}`,
         },
+        async (payload) => {
+          const newMsg = payload.new as Message;
+          setMessages((prev) => [...prev, newMsg]);
+
+          // 상대방 메시지가 들어오면 바로 읽음 처리
+          if (newMsg.sender_id !== user.id) {
+            await supabase
+              .from("messages")
+              .update({ is_read: true })
+              .eq("id", newMsg.id);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `room_id=eq.${roomId}`,
+        },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          const updated = payload.new as Message;
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === updated.id ? updated : msg))
+          );
         }
       )
       .subscribe();
@@ -234,7 +267,12 @@ export default function ChatRoomPage() {
                     >
                       {searchQuery && isMatch ? highlightText(msg.text, searchQuery, !!isActiveMatch) : msg.text}
                     </div>
-                    <span className="shrink-0 text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
+                    <div className={`flex shrink-0 flex-col ${isMine ? "items-end" : "items-start"}`}>
+                      {isMine && !msg.is_read && (
+                        <span className="text-[10px] font-bold text-primary">1</span>
+                      )}
+                      <span className="text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
+                    </div>
                   </div>
                 </div>
               );
