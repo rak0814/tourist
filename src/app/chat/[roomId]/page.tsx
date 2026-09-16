@@ -144,35 +144,25 @@ export default function ChatRoomPage() {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload) => {
+          const updated = payload.new as Message;
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === updated.id ? updated : msg))
+          );
+        }
+      )
       .subscribe();
-
-    // 읽음 상태 폴링 (3초마다)
-    const pollRead = setInterval(async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("id, is_read")
-        .eq("room_id", roomId)
-        .eq("sender_id", user.id)
-        .eq("is_read", false);
-
-      if (data && data.length === 0) {
-        // 안 읽은 메시지 없으면 전부 읽음으로 갱신
-        setMessages((prev) => prev.map((msg) => ({ ...msg, is_read: true })));
-      } else if (data) {
-        const unreadIds = new Set(data.map((d) => d.id));
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.sender_id === user.id
-              ? { ...msg, is_read: !unreadIds.has(msg.id) }
-              : msg
-          )
-        );
-      }
-    }, 3000);
 
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(pollRead);
     };
   }, [roomId, user]);
 
