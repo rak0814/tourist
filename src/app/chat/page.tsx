@@ -228,22 +228,22 @@ export default function ChatListPage() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm font-semibold">{room.otherNickname}</span>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        {room.lastMessageTime && (
-                          <span className="text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
-                        )}
-                        {(room.unreadCount ?? 0) > 0 && (
-                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
-                            {room.unreadCount}
-                          </span>
-                        )}
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold">{room.otherNickname}</span>
+                      {room.lastMessageTime && (
+                        <span className="shrink-0 text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
+                      )}
                     </div>
-                    <p className="mt-0.5 truncate text-xs text-zinc-400">
-                      {room.lastMessage ?? "메시지가 없습니다"}
-                    </p>
+                    <div className="mt-0.5 flex items-center justify-between gap-2">
+                      <p className="min-w-0 truncate text-xs text-zinc-400">
+                        {room.lastMessage ?? "메시지가 없습니다"}
+                      </p>
+                      {(room.unreadCount ?? 0) > 0 && (
+                        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+                          {room.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </button>
               </li>
