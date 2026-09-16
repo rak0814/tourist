@@ -14,6 +14,7 @@ interface ChatRoom {
   otherNickname?: string;
   lastMessage?: string;
   lastMessageTime?: string;
+  unreadCount?: number;
 }
 
 export default function ChatListPage() {
@@ -65,11 +66,19 @@ export default function ChatListPage() {
           .limit(1)
           .single();
 
+        const { count } = await supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("room_id", room.id)
+          .neq("sender_id", user.id)
+          .eq("is_read", false);
+
         return {
           ...room,
           otherNickname: otherUser?.nickname ?? "사용자",
           lastMessage: lastMsg?.text,
           lastMessageTime: lastMsg?.created_at,
+          unreadCount: count ?? 0,
         };
       })
     );
@@ -221,9 +230,16 @@ export default function ChatListPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold">{room.otherNickname}</span>
-                      {room.lastMessageTime && (
-                        <span className="text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
-                      )}
+                      <div className="flex flex-col items-end gap-1">
+                        {room.lastMessageTime && (
+                          <span className="text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
+                        )}
+                        {(room.unreadCount ?? 0) > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+                            {room.unreadCount}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="mt-0.5 truncate text-xs text-zinc-400">
                       {room.lastMessage ?? "메시지가 없습니다"}
