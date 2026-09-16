@@ -228,9 +228,9 @@ export default function ChatListPage() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">{room.otherNickname}</span>
-                      <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{room.otherNickname}</span>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
                         {room.lastMessageTime && (
                           <span className="text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
                         )}
