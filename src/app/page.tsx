@@ -1,6 +1,7 @@
 import { BottomNav } from "@/components/bottom-nav";
 import { HeaderActions } from "@/components/header-actions";
 import { KakaoMap } from "@/components/kakao-map";
+import { VisitLogger } from "@/components/visit-logger";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
 
       {/* 지도 */}
       <main className="min-h-0 flex-1">
+        <VisitLogger />
         <KakaoMap />
       </main>
 
