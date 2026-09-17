@@ -19,7 +19,7 @@ export function BoardList({ posts }: { posts: Post[] }) {
             href={`/board/${post.id}`}
             className="flex flex-col gap-1 px-4 py-3 active:bg-zinc-50 dark:active:bg-zinc-900"
           >
-            <p className="text-sm font-medium leading-snug">{post.title}</p>
+            <p className="truncate text-sm font-medium leading-snug">{post.title}</p>
             <div className="flex items-center gap-2 text-xs text-zinc-400">
               <span>{post.author}</span>
               <span>·</span>
