@@ -228,14 +228,14 @@ export default function ChatListPage() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex gap-3">
+                    <div className="flex h-12 gap-3">
                       <div className="min-w-0 flex-1">
                         <span className="text-sm font-semibold">{room.otherNickname}</span>
-                        <p className="mt-0.5 text-xs leading-normal text-zinc-400" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        <p className="mt-0.5 truncate text-xs text-zinc-400">
                           {room.lastMessage ?? "메시지가 없습니다"}
                         </p>
                       </div>
-                      <div className="flex shrink-0 flex-col items-end justify-center gap-1 self-center">
+                      <div className="flex shrink-0 flex-col items-end justify-center gap-1">
                         {room.lastMessageTime && (
                           <span className="text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
                         )}
