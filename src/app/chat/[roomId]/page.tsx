@@ -192,6 +192,14 @@ export default function ChatRoomPage() {
     return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
   };
 
+  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+  const formatDateLabel = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${dayNames[d.getDay()]}요일`;
+  };
+
+  const getDateKey = (dateStr: string) => new Date(dateStr).toDateString();
+
   if (!user) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -240,13 +248,22 @@ export default function ChatRoomPage() {
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
         ) : (
           <div className="space-y-2">
-            {messages.map((msg) => {
+            {messages.map((msg, idx) => {
               const isMine = msg.sender_id === user.id;
               const isMatch = searchQuery && matchedIds.includes(msg.id);
               const isActiveMatch = isMatch && matchedIds[currentMatchIndex] === msg.id;
+              const prevMsg = messages[idx - 1];
+              const showDate = !prevMsg || getDateKey(prevMsg.created_at) !== getDateKey(msg.created_at);
               return (
+                <div key={msg.id}>
+                {showDate && (
+                  <div className="flex items-center justify-center py-3">
+                    <span className="rounded-full bg-zinc-200/70 px-3 py-1 text-[11px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                      {formatDateLabel(msg.created_at)}
+                    </span>
+                  </div>
+                )}
                 <div
-                  key={msg.id}
                   ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
                   className={`flex ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
                 >
@@ -274,6 +291,7 @@ export default function ChatRoomPage() {
                       <span className="text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
                     </div>
                   </div>
+                </div>
                 </div>
               );
             })}
