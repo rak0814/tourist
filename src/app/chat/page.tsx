@@ -192,14 +192,16 @@ export default function ChatListPage() {
               placeholder="상대방 이메일로 채팅 시작"
               value={searchEmail}
               onChange={(e) => setSearchEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && startChat()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") startChat();
+              }}
               autoFocus
               className="flex-1 rounded-full bg-zinc-100 px-4 py-1.5 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
             />
             <button
               onClick={startChat}
               disabled={!searchEmail.trim()}
-              className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+              className="shrink-0 text-sm font-semibold text-primary disabled:text-zinc-300"
             >
               시작
             </button>
