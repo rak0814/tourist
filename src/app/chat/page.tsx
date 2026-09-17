@@ -235,7 +235,7 @@ export default function ChatListPage() {
                       )}
                     </div>
                     <div className="mt-0.5 flex items-center justify-between gap-2">
-                      <p className="min-w-0 truncate text-xs text-zinc-400">
+                      <p className="min-w-0 text-xs leading-normal text-zinc-400" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                         {room.lastMessage ?? "메시지가 없습니다"}
                       </p>
                       {(room.unreadCount ?? 0) > 0 && (
