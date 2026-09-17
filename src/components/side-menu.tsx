@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { supabase } from "@/lib/supabase";
 
 interface SideMenuProps {
   open: boolean;
@@ -26,8 +27,12 @@ const etcItems = [
   { label: "내정보", icon: PersonIcon },
 ];
 
+const ADMIN_EMAIL = "rak0418@naver.com";
+
 export function SideMenu({ open, onClose }: SideMenuProps) {
   const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.email === ADMIN_EMAIL;
+  const [stats, setStats] = useState<{ total_members: number; today_visitors: number; total_visitors: number } | null>(null);
 
   // 열릴 때 스크롤 방지
   useEffect(() => {
@@ -35,6 +40,15 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
     else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
+
+  // 관리자일 때 통계 로드
+  useEffect(() => {
+    if (open && isAdmin) {
+      supabase.rpc("get_admin_stats").then(({ data }) => {
+        if (data) setStats(data);
+      });
+    }
+  }, [open, isAdmin]);
 
   return (
     <>
@@ -115,12 +129,14 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
           </div>
         </div>
 
-        {/* 하단 통계 */}
-        <div className="border-t border-zinc-100 px-5 py-4 text-xs text-zinc-500 dark:border-zinc-800">
-          <p>오늘 접속자 <span className="font-semibold text-foreground">0</span></p>
-          <p className="mt-0.5">누적 접속자 <span className="font-semibold text-foreground">0</span></p>
-          <p className="mt-0.5">총 회원수 <span className="font-semibold text-foreground">0</span></p>
-        </div>
+        {/* 하단 통계 (관리자 전용) */}
+        {isAdmin && stats && (
+          <div className="border-t border-zinc-100 px-5 py-4 text-xs text-zinc-500 dark:border-zinc-800">
+            <p>오늘 접속자 <span className="font-semibold text-foreground">{stats.today_visitors}</span></p>
+            <p className="mt-0.5">누적 접속자 <span className="font-semibold text-foreground">{stats.total_visitors}</span></p>
+            <p className="mt-0.5">총 회원수 <span className="font-semibold text-foreground">{stats.total_members}</span></p>
+          </div>
+        )}
       </div>
     </>
   );
