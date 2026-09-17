@@ -199,7 +199,7 @@ export default function ChatListPage() {
             <button
               onClick={startChat}
               disabled={!searchEmail.trim()}
-              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+              className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
             >
               시작
             </button>
