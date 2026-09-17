@@ -237,16 +237,14 @@ export default function ChatListPage() {
                           {room.lastMessage ?? "메시지가 없습니다"}
                         </p>
                       </div>
-                      <div className="flex shrink-0 flex-col items-end justify-evenly self-stretch">
+                      <div className="flex shrink-0 flex-col items-end justify-center gap-1">
                         {room.lastMessageTime && (
                           <span className="text-xs text-zinc-400">{formatTime(room.lastMessageTime)}</span>
                         )}
-                        {(room.unreadCount ?? 0) > 0 ? (
+                        {(room.unreadCount ?? 0) > 0 && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
                             {room.unreadCount}
                           </span>
-                        ) : (
-                          <span className="h-5" />
                         )}
                       </div>
                     </div>
