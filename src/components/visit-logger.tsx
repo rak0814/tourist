@@ -10,7 +10,7 @@ export function VisitLogger() {
   useEffect(() => {
     if (!user) return;
 
-    supabase.from("visit_logs").insert({ user_id: user.id });
+    supabase.from("visit_logs").insert({ user_id: user.id }).then();
   }, [user]);
 
   return null;
