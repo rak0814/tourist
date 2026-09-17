@@ -51,8 +51,8 @@ export default function WritePage() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200 px-4 pt-[var(--safe-area-top)] dark:border-zinc-800">
-        <Link href="/board" className="text-zinc-500">
+      <header className="relative flex h-12 shrink-0 items-center justify-center border-b border-zinc-200 px-4 pt-[var(--safe-area-top)] dark:border-zinc-800">
+        <Link href="/board" className="absolute left-4 text-zinc-500">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
@@ -61,7 +61,7 @@ export default function WritePage() {
         <button
           onClick={handleSubmit}
           disabled={!title.trim() || !content.trim() || submitting}
-          className="text-sm font-semibold text-primary disabled:text-zinc-300"
+          className="absolute right-4 text-sm font-semibold text-primary disabled:text-zinc-300"
         >
           {submitting ? "등록 중..." : "등록"}
         </button>
