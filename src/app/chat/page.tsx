@@ -210,7 +210,7 @@ export default function ChatListPage() {
             <button
               onClick={startChat}
               disabled={!searchEmail.trim()}
-              className="shrink-0 text-sm font-semibold text-primary disabled:text-zinc-300"
+              className="shrink-0 text-sm font-semibold text-primary"
             >
               시작
             </button>
