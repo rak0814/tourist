@@ -70,7 +70,7 @@ export default function TermsPage() {
 
         <Section title="제7조 (서비스의 제공 및 변경)">
           <ol className="list-decimal space-y-1 pl-5">
-            <li>운영자는 커뮤니티 게시판 및 기타 운영자가 추가 개발하는 서비스를 제공합니다.</li>
+            <li>운영자는 커뮤니티 게시판, 채팅, 위치 기반 지도 서비스 및 기타 운영자가 추가 개발하는 서비스를 제공합니다.</li>
             <li>운영자는 서비스의 내용을 변경하거나 중단할 수 있으며, 이 경우 사전에 공지합니다.</li>
           </ol>
         </Section>
@@ -82,14 +82,22 @@ export default function TermsPage() {
           </ol>
         </Section>
 
-        <Section title="제9조 (면책 조항)">
+        <Section title="제9조 (위치 기반 서비스)">
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>서비스는 이용자의 위치 정보를 활용하여 지도 표시 및 주변 이용자 탐색 기능을 제공합니다.</li>
+            <li>위치 정보는 이용자의 단말기에서 브라우저 권한 허용 시에만 수집되며, 이용자는 언제든지 브라우저 설정에서 위치 권한을 해제할 수 있습니다.</li>
+            <li>수집된 위치 정보는 서비스 제공 목적으로만 사용되며, 별도 저장하지 않습니다.</li>
+          </ol>
+        </Section>
+
+        <Section title="제10조 (면책 조항)">
           <ol className="list-decimal space-y-1 pl-5">
             <li>운영자는 천재지변, 시스템 장애 등 불가항력으로 인해 서비스를 제공할 수 없는 경우 책임을 지지 않습니다.</li>
             <li>운영자는 이용자 간 또는 이용자와 제3자 간에 서비스를 매개로 발생한 분쟁에 대해 개입할 의무가 없으며, 이로 인한 손해를 배상할 책임이 없습니다.</li>
           </ol>
         </Section>
 
-        <Section title="제10조 (분쟁 해결)">
+        <Section title="제11조 (분쟁 해결)">
           <ol className="list-decimal space-y-1 pl-5">
             <li>본 약관에 명시되지 않은 사항은 관련 법령 및 일반 상관례에 따릅니다.</li>
             <li>서비스 이용과 관련된 분쟁은 대한민국 법률을 준거법으로 하며, 관할 법원은 민사소송법에 따릅니다.</li>
