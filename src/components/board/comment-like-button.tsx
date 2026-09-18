@@ -11,6 +11,15 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
   const busyRef = useRef(false);
 
   useEffect(() => {
+    // 실제 좋아요 수 조회 (캐시 무관)
+    supabase
+      .from("comment_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("comment_id", commentId)
+      .then(({ count }) => {
+        if (count !== null) setLikes(count);
+      });
+
     if (!user) return;
 
     supabase
