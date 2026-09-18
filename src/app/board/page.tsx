@@ -20,15 +20,24 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
 
   const { data: posts } = await query;
 
-  const formatted = (posts ?? []).map((post) => ({
-    id: post.id,
-    title: post.title,
-    author: post.author,
-    date: new Date(post.created_at).toLocaleDateString("ko-KR"),
-    views: post.views,
-    likes: post.likes,
-    commentCount: post.comments?.[0]?.count ?? 0,
-  }));
+  const formatted = await Promise.all(
+    (posts ?? []).map(async (post) => {
+      const { count } = await supabase
+        .from("post_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("post_id", post.id);
+
+      return {
+        id: post.id,
+        title: post.title,
+        author: post.author,
+        date: new Date(post.created_at).toLocaleDateString("ko-KR"),
+        views: post.views,
+        likes: count ?? 0,
+        commentCount: post.comments?.[0]?.count ?? 0,
+      };
+    })
+  );
 
   return (
     <div className="flex h-full flex-col">
