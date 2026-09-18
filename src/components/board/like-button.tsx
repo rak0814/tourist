@@ -66,6 +66,21 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
         setLikes((prev) => prev - 1);
       } else {
         await syncLikes();
+        // 알림 생성 (본인 글이 아닐 때만)
+        const { data: post } = await supabase
+          .from("posts")
+          .select("user_id, title")
+          .eq("id", postId)
+          .single();
+        if (post && post.user_id !== user.id) {
+          await supabase.from("notifications").insert({
+            user_id: post.user_id,
+            actor_name: user.nickname,
+            type: "like",
+            post_id: postId,
+            post_title: post.title,
+          });
+        }
       }
     }
 
