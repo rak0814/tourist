@@ -35,6 +35,11 @@ export default function PrivacyPage() {
                   <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">게시글, 댓글 내용</td>
                   <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">커뮤니티 기능 제공</td>
                 </tr>
+                <tr>
+                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">위치 기반 서비스</td>
+                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">위치 정보(위도, 경도)</td>
+                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">지도 표시 및 주변 이용자 탐색</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -43,7 +48,8 @@ export default function PrivacyPage() {
         <Section title="2. 개인정보의 이용 목적">
           <ul className="list-disc space-y-0.5 pl-5">
             <li>회원 가입 및 본인 확인</li>
-            <li>서비스 제공 및 운영 (게시판 등)</li>
+            <li>서비스 제공 및 운영 (게시판, 채팅 등)</li>
+            <li>위치 기반 서비스 제공 (지도 표시, 주변 이용자 탐색)</li>
             <li>서비스 개선 및 오류 대응</li>
           </ul>
         </Section>
@@ -77,6 +83,10 @@ export default function PrivacyPage() {
                 <tr>
                   <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">Supabase Inc.</td>
                   <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">클라우드 데이터베이스 및 인증 서비스 운영</td>
+                </tr>
+                <tr>
+                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">카카오</td>
+                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">지도 API 서비스 제공</td>
                 </tr>
               </tbody>
             </table>
