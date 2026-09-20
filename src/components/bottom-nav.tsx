@@ -36,7 +36,7 @@ export function BottomNav() {
         );
       })}
       </div>
-      <div className="h-[var(--safe-area-bottom)]" />
+      <div style={{ height: "max(0.5rem, var(--safe-area-bottom))" }} />
     </nav>
   );
 }
