@@ -51,16 +51,34 @@ export default function WritePage() {
 
   // 카카오 SDK 로드 (services 라이브러리 포함)
   useEffect(() => {
-    if (window.kakao?.maps?.services) {
-      setSdkLoaded(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
-    script.onload = () => {
-      window.kakao.maps.load(() => setSdkLoaded(true));
+    const loadServices = () => {
+      if (window.kakao?.maps?.services) {
+        setSdkLoaded(true);
+        return;
+      }
+      // services 라이브러리가 없으면 새로 로드
+      const script = document.createElement("script");
+      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
+      script.onload = () => {
+        window.kakao.maps.load(() => setSdkLoaded(true));
+      };
+      document.head.appendChild(script);
     };
-    document.head.appendChild(script);
+
+    if (window.kakao?.maps) {
+      // SDK는 있지만 services가 없을 수 있음
+      if (window.kakao.maps.services) {
+        setSdkLoaded(true);
+      } else {
+        // services만 추가 로드
+        const script = document.createElement("script");
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services`;
+        script.onload = () => setSdkLoaded(true);
+        document.head.appendChild(script);
+      }
+    } else {
+      loadServices();
+    }
   }, []);
 
   // SDK 로드 후 위치 가져오기
