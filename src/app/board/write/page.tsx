@@ -2,9 +2,43 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/use-auth-store";
+
+declare global {
+  interface Window {
+    kakao: any;
+  }
+}
+
+function getLocation(): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { kakao } = window;
+        if (!kakao?.maps?.services) return resolve(null);
+
+        const geocoder = new kakao.maps.services.Geocoder();
+        geocoder.coord2RegionCode(pos.coords.longitude, pos.coords.latitude, (result: any[], status: string) => {
+          if (status === kakao.maps.services.Status.OK) {
+            const region = result.find((r: any) => r.region_type === "H");
+            if (region) {
+              resolve(region.region_3depth_name || region.region_2depth_name);
+            } else {
+              resolve(null);
+            }
+          } else {
+            resolve(null);
+          }
+        });
+      },
+      () => resolve(null)
+    );
+  });
+}
 
 export default function WritePage() {
   const router = useRouter();
@@ -12,6 +46,28 @@ export default function WritePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [location, setLocation] = useState<string | null>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+
+  // 카카오 SDK 로드 (services 라이브러리 포함)
+  useEffect(() => {
+    if (window.kakao?.maps?.services) {
+      setSdkLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
+    script.onload = () => {
+      window.kakao.maps.load(() => setSdkLoaded(true));
+    };
+    document.head.appendChild(script);
+  }, []);
+
+  // SDK 로드 후 위치 가져오기
+  useEffect(() => {
+    if (!sdkLoaded) return;
+    getLocation().then((loc) => setLocation(loc));
+  }, [sdkLoaded]);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -33,6 +89,7 @@ export default function WritePage() {
           content: content.trim(),
           author: user.nickname,
           user_id: user.id,
+          location,
         });
 
       if (error) {
