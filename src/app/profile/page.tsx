@@ -17,6 +17,8 @@ export default function ProfilePage() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -70,12 +72,24 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!user) return;
-    if (!confirm("정말 탈퇴하시겠습니까?\n모든 데이터가 삭제됩니다.")) return;
+    if (!user || !deletePassword) return;
+
+    // 비밀번호 확인
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: deletePassword,
+    });
+
+    if (signInError) {
+      setMessage({ text: "비밀번호가 일치하지 않습니다.", type: "error" });
+      setTimeout(() => setMessage(null), 2000);
+      return;
+    }
 
     const { error } = await supabase.rpc("delete_user");
     if (error) {
-      alert("탈퇴 처리에 실패했습니다: " + error.message);
+      setMessage({ text: "탈퇴 처리에 실패했습니다.", type: "error" });
+      setTimeout(() => setMessage(null), 2000);
       return;
     }
     await supabase.auth.signOut();
@@ -202,12 +216,48 @@ export default function ProfilePage() {
 
           {/* 회원탈퇴 */}
           <div className="pt-4">
-            <button onClick={handleDeleteAccount} className="text-sm text-red-400">
+            <button onClick={() => { setShowDeleteModal(true); setDeletePassword(""); }} className="text-sm text-red-400">
               회원탈퇴
             </button>
           </div>
         </div>
       </main>
+
+      {/* 회원탈퇴 모달 */}
+      {showDeleteModal && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowDeleteModal(false)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
+            <h2 className="text-lg font-bold text-red-500">회원탈퇴</h2>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+              탈퇴하면 모든 데이터가 삭제되며 복구할 수 없습니다. 계속하려면 비밀번호를 입력하세요.
+            </p>
+            <p className="mt-4 text-sm font-semibold">비밀번호 확인</p>
+            <input
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              className="mt-2 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-red-300 dark:border-zinc-700 dark:bg-zinc-800"
+            />
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-semibold dark:bg-zinc-800 dark:text-zinc-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={!deletePassword}
+                className="flex-1 rounded-lg bg-red-500 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                탈퇴하기
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <BottomNav />
     </div>
