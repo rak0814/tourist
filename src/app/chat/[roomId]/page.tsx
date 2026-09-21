@@ -206,6 +206,8 @@ export default function ChatRoomPage() {
     }
   }, [messages, searchOpen]);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const handleSend = async () => {
     if (!user || !text.trim() || sending) return;
     setSending(true);
@@ -217,6 +219,7 @@ export default function ChatRoomPage() {
     });
 
     setText("");
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
     setSending(false);
   };
 
@@ -398,14 +401,25 @@ export default function ChatRoomPage() {
       {/* 메시지 입력 */}
       {!searchOpen && (
         <div className="shrink-0 border-t border-zinc-200 bg-background px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={textareaRef}
               placeholder="메시지를 입력하세요"
               value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              className="flex-1 rounded-full bg-zinc-100 px-4 py-2 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+              onChange={(e) => {
+                setText(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 144) + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              rows={1}
+              className="flex-1 resize-none rounded-2xl bg-zinc-100 px-4 py-2 text-sm leading-normal outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+              style={{ maxHeight: 144 }}
             />
             <button
               onClick={handleSend}
