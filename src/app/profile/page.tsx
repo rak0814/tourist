@@ -22,17 +22,12 @@ export default function ProfilePage() {
     if (!user) return;
     setNickname(user.nickname);
 
-    supabase
-      .from("profiles")
-      .select("created_at")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data?.created_at) {
-          const d = new Date(data.created_at);
-          setCreatedAt(`${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`);
-        }
-      });
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.created_at) {
+        const d = new Date(data.user.created_at);
+        setCreatedAt(`${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`);
+      }
+    });
   }, [user]);
 
   const handleNicknameChange = async () => {
