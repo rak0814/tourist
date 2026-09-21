@@ -11,7 +11,6 @@ interface SideMenuProps {
 
 const infoItems = [
   { label: "공지사항", icon: MegaphoneIcon },
-  { label: "알림", icon: BellIcon },
   { label: "업데이트", icon: SparklesIcon },
 ];
 
