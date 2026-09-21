@@ -279,7 +279,7 @@ export default function ChatRoomPage() {
       </header>
 
       {/* 메시지 영역 */}
-      <main className="flex-1 overflow-y-auto bg-zinc-50 px-4 py-3 dark:bg-zinc-950">
+      <main className="min-h-0 flex-1 overflow-y-auto bg-zinc-50 px-4 py-3 dark:bg-zinc-950">
         {messages.length === 0 ? (
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
         ) : (
@@ -410,6 +410,7 @@ export default function ChatRoomPage() {
                 setText(e.target.value);
                 e.target.style.height = "auto";
                 e.target.style.height = Math.min(e.target.scrollHeight, 144) + "px";
+                bottomRef.current?.scrollIntoView({ behavior: "instant" });
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
