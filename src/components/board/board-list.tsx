@@ -12,6 +12,7 @@ interface Post {
   views: number;
   likes: number;
   commentCount: number;
+  location?: string | null;
 }
 
 function PostStats({ postId, initialViews, initialComments }: { postId: string; initialViews: number; initialComments: number }) {
@@ -60,6 +61,12 @@ export function BoardList({ posts }: { posts: Post[] }) {
           >
             <p className="truncate text-sm font-medium leading-snug">{post.title}</p>
             <div className="flex items-center gap-2 text-xs text-zinc-400">
+              {post.location && (
+                <>
+                  <span>{post.location}</span>
+                  <span>·</span>
+                </>
+              )}
               <span>{post.author}</span>
               <span>·</span>
               <span>{post.date}</span>
