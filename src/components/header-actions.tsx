@@ -14,11 +14,34 @@ export function HeaderActions() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("notifications")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .then(({ count }) => setNotiCount(count ?? 0));
+
+    const fetchCount = () => {
+      supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .then(({ count }) => setNotiCount(count ?? 0));
+    };
+
+    fetchCount();
+
+    const channel = supabase
+      .channel("noti-badge")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchCount()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const handleLogout = async () => {
