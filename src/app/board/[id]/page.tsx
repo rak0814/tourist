@@ -64,7 +64,10 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
             <UserAvatar />
             <div>
               <p className="text-sm font-semibold">{post.author}</p>
-              <p className="text-xs text-zinc-400">{formatDate(post.created_at)}</p>
+              <p className="text-xs text-zinc-400">
+                {post.location && <span>{post.location} · </span>}
+                {formatDate(post.created_at)}
+              </p>
             </div>
           </div>
           <PostActions postId={post.id} postUserId={post.user_id} />
