@@ -62,7 +62,7 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <UserAvatar />
-            <div>
+            <div className="space-y-1">
               <p className="text-sm font-semibold">{post.author}</p>
               <p className="text-xs text-zinc-400">
                 {post.location && <span>{post.location} · </span>}
