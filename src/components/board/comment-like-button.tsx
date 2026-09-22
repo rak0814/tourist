@@ -75,13 +75,14 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
         setLikes((prev) => prev - 1);
       } else {
         await syncLikes();
-        // 알림 생성 (본인 댓글이 아닐 때 + 계정당 댓글당 하루 1회)
+        // 알림 생성 (본인 댓글/답글이 아닐 때 + 계정당 하루 1회)
         const { data: comment } = await supabase
           .from("comments")
-          .select("user_id, post_id")
+          .select("user_id, post_id, parent_id")
           .eq("id", commentId)
           .single();
         if (comment && comment.user_id !== user.id) {
+          const notiType = comment.parent_id ? "reply_like" : "comment_like";
           const { data: post } = await supabase
             .from("posts")
             .select("title")
@@ -94,7 +95,7 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
             .select("id")
             .eq("user_id", comment.user_id)
             .eq("actor_name", user.nickname)
-            .eq("type", "comment_like")
+            .eq("type", notiType)
             .eq("post_id", comment.post_id)
             .gte("created_at", today.toISOString())
             .maybeSingle();
@@ -102,7 +103,7 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
             await supabase.from("notifications").insert({
               user_id: comment.user_id,
               actor_name: user.nickname,
-              type: "comment_like",
+              type: notiType,
               post_id: comment.post_id,
               post_title: post?.title ?? "",
             });
