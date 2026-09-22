@@ -218,15 +218,19 @@ export default function ChatRoomPage() {
 
   // 수정 모드 진입 시 자동 포커스
   useEffect(() => {
-    if (editingMsg) {
-      requestAnimationFrame(() => {
-        const ta = editTextareaRef.current;
-        if (ta) {
-          ta.focus();
-          ta.selectionStart = ta.selectionEnd = ta.value.length;
-        }
-      });
-    }
+    if (!editingMsg) return;
+    const tryFocus = () => {
+      const ta = editTextareaRef.current;
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+      }
+    };
+    // 모바일에서 렌더링 후 포커스가 잡히도록 여러 타이밍에 시도
+    requestAnimationFrame(tryFocus);
+    const t1 = setTimeout(tryFocus, 100);
+    const t2 = setTimeout(tryFocus, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [editingMsg]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -482,6 +486,7 @@ export default function ChatRoomPage() {
           <div className="flex items-end gap-2 border-t border-zinc-100 px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
             <textarea
               ref={editTextareaRef}
+              autoFocus
               value={editText}
               onChange={(e) => {
                 setEditText(e.target.value);
