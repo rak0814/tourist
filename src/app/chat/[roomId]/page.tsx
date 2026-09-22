@@ -383,7 +383,7 @@ export default function ChatRoomPage() {
                 )}
                 <div
                   ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
-                  className={`flex items-center gap-2 ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
+                  className={`flex items-center gap-2 ${selectMode ? "justify-start" : isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
                   onTouchStart={(e) => handleTouchStart(msg.id, e)}
                   onTouchEnd={handleTouchEnd}
                   onTouchMove={handleTouchEnd}
