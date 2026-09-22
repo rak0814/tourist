@@ -88,7 +88,7 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
             .from("notifications")
             .select("id")
             .eq("user_id", post.user_id)
-            .eq("actor_id", user.id)
+            .eq("actor_name", user.nickname)
             .eq("post_id", postId)
             .eq("type", "like")
             .gte("created_at", today.toISOString())
@@ -96,7 +96,6 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
           if (!existing) {
             await supabase.from("notifications").insert({
               user_id: post.user_id,
-              actor_id: user.id,
               actor_name: user.nickname,
               type: "like",
               post_id: postId,
