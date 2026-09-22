@@ -338,7 +338,7 @@ export default function ChatRoomPage() {
                       </div>
                     )}
                     <div
-                      className={`rounded-2xl text-sm leading-snug ${
+                      className={`min-w-0 overflow-hidden rounded-2xl text-sm leading-snug ${
                         isMine
                           ? "rounded-br-sm bg-primary text-white"
                           : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
@@ -347,12 +347,12 @@ export default function ChatRoomPage() {
                       {msg.reply_to_text && (
                         <button
                           onClick={() => { if (msg.reply_to_id) { const el = msgRefs.current.get(msg.reply_to_id); el?.scrollIntoView({ behavior: "smooth", block: "center" }); } }}
-                          className="block w-full px-3.5 text-left"
+                          className="block w-full min-w-0 overflow-hidden px-3.5 text-left"
                         >
-                          <p className={`text-xs font-bold ${isMine ? "text-white/80" : "text-zinc-600 dark:text-zinc-300"}`}>
+                          <p className={`truncate text-xs font-bold ${isMine ? "text-white/80" : "text-zinc-600 dark:text-zinc-300"}`}>
                             {msg.reply_to_sender === (user?.nickname) ? "나" : msg.reply_to_sender}에게 답장
                           </p>
-                          <p className={`mt-0.5 truncate text-xs ${isMine ? "text-white/60" : "text-zinc-400 dark:text-zinc-500"}`}>{msg.reply_to_text}</p>
+                          <p className={`mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-xs ${isMine ? "text-white/60" : "text-zinc-400 dark:text-zinc-500"}`}>{msg.reply_to_text}</p>
                           <div className={`mt-2 border-t ${isMine ? "border-white/20" : "border-zinc-200 dark:border-zinc-700"}`} />
                         </button>
                       )}
