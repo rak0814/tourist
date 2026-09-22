@@ -253,7 +253,7 @@ export default function ProfilePage() {
       {showDeleteModal && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowDeleteModal(false)} />
-          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-red-500">회원탈퇴</h2>
             <p className="mt-2 text-sm leading-relaxed text-zinc-500">
               탈퇴하면 모든 데이터가 삭제되며 복구할 수 없습니다. 계속하려면 비밀번호를 입력하세요.
