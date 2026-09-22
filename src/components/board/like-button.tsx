@@ -75,7 +75,7 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
         setLikes((prev) => prev - 1);
       } else {
         await syncLikes();
-        // 알림 생성 (본인 글이 아닐 때 + 게시물당 하루 1회)
+        // 알림 생성 (본인 글이 아닐 때 + 계정당 게시물당 하루 1회)
         const { data: post } = await supabase
           .from("posts")
           .select("user_id, title")
@@ -88,14 +88,15 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
             .from("notifications")
             .select("id")
             .eq("user_id", post.user_id)
+            .eq("actor_id", user.id)
             .eq("post_id", postId)
             .eq("type", "like")
-            .eq("actor_name", user.nickname)
             .gte("created_at", today.toISOString())
             .maybeSingle();
           if (!existing) {
             await supabase.from("notifications").insert({
               user_id: post.user_id,
+              actor_id: user.id,
               actor_name: user.nickname,
               type: "like",
               post_id: postId,

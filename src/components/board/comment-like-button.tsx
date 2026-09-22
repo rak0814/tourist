@@ -75,6 +75,40 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
         setLikes((prev) => prev - 1);
       } else {
         await syncLikes();
+        // 알림 생성 (본인 댓글이 아닐 때 + 계정당 댓글당 하루 1회)
+        const { data: comment } = await supabase
+          .from("comments")
+          .select("user_id, post_id, content")
+          .eq("id", commentId)
+          .single();
+        if (comment && comment.user_id !== user.id) {
+          const { data: post } = await supabase
+            .from("posts")
+            .select("title")
+            .eq("id", comment.post_id)
+            .single();
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const { data: existing } = await supabase
+            .from("notifications")
+            .select("id")
+            .eq("user_id", comment.user_id)
+            .eq("actor_id", user.id)
+            .eq("type", "comment_like")
+            .eq("post_id", comment.post_id)
+            .gte("created_at", today.toISOString())
+            .maybeSingle();
+          if (!existing) {
+            await supabase.from("notifications").insert({
+              user_id: comment.user_id,
+              actor_id: user.id,
+              actor_name: user.nickname,
+              type: "comment_like",
+              post_id: comment.post_id,
+              post_title: post?.title ?? "",
+            });
+          }
+        }
       }
     }
 
