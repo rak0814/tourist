@@ -279,7 +279,10 @@ export default function ChatRoomPage() {
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+    const h = d.getHours();
+    const ampm = h < 12 ? "오전" : "오후";
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${ampm} ${h12}:${String(d.getMinutes()).padStart(2, "0")}`;
   };
 
   const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
