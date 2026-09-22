@@ -383,15 +383,23 @@ export default function ChatRoomPage() {
                 )}
                 <div
                   ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
-                  className={`relative flex items-center ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
-                  style={selectMode && !isMine ? { transform: "translateX(2rem)" } : undefined}
+                  className={`relative flex items-center gap-2 ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
                   onTouchStart={(e) => handleTouchStart(msg.id, e)}
                   onTouchEnd={handleTouchEnd}
                   onTouchMove={handleTouchEnd}
                   onContextMenu={(e) => e.preventDefault()}
                   onClick={selectMode ? () => setSelectedIds((prev) => { const next = new Set(prev); if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id); return next; }) : undefined}
                 >
-                  {selectMode && (
+                  {selectMode && !isMine && (
+                    <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary bg-primary" : "border-zinc-300 dark:border-zinc-600"}`}>
+                      {isSelected && (
+                        <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
+                  {selectMode && isMine && (
                     <div className={`absolute left-0 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary bg-primary" : "border-zinc-300 dark:border-zinc-600"}`}>
                       {isSelected && (
                         <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
