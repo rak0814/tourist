@@ -82,26 +82,13 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
           .eq("id", postId)
           .single();
         if (post && post.user_id !== user.id) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const { data: existing } = await supabase
-            .from("notifications")
-            .select("id")
-            .eq("user_id", post.user_id)
-            .eq("actor_name", user.nickname)
-            .eq("post_id", postId)
-            .eq("type", "like")
-            .gte("created_at", today.toISOString())
-            .maybeSingle();
-          if (!existing) {
-            await supabase.from("notifications").insert({
-              user_id: post.user_id,
-              actor_name: user.nickname,
-              type: "like",
-              post_id: postId,
-              post_title: post.title,
-            });
-          }
+          await supabase.rpc("create_notification_once_daily", {
+            p_user_id: post.user_id,
+            p_actor_name: user.nickname,
+            p_type: "like",
+            p_post_id: postId,
+            p_post_title: post.title,
+          });
         }
       }
     }

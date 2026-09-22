@@ -88,26 +88,13 @@ export function CommentLikeButton({ commentId, initialLikes }: { commentId: stri
             .select("title")
             .eq("id", comment.post_id)
             .single();
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const { data: existing } = await supabase
-            .from("notifications")
-            .select("id")
-            .eq("user_id", comment.user_id)
-            .eq("actor_name", user.nickname)
-            .eq("type", notiType)
-            .eq("post_id", comment.post_id)
-            .gte("created_at", today.toISOString())
-            .maybeSingle();
-          if (!existing) {
-            await supabase.from("notifications").insert({
-              user_id: comment.user_id,
-              actor_name: user.nickname,
-              type: notiType,
-              post_id: comment.post_id,
-              post_title: post?.title ?? "",
-            });
-          }
+          await supabase.rpc("create_notification_once_daily", {
+            p_user_id: comment.user_id,
+            p_actor_name: user.nickname,
+            p_type: notiType,
+            p_post_id: comment.post_id,
+            p_post_title: post?.title ?? "",
+          });
         }
       }
     }

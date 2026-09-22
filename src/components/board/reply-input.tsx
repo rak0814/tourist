@@ -36,33 +36,20 @@ export function ReplyInput({ postId, parentId, isFixed }: { postId: string; pare
       return;
     }
 
-    // 알림 생성 (본인 글이 아닐 때 + 게시물당 하루 1회)
+    // 알림 생성 (본인 글이 아닐 때 + 계정당 게시물당 하루 1회)
     const { data: post } = await supabase
       .from("posts")
       .select("user_id, title")
       .eq("id", postId)
       .single();
     if (post && post.user_id !== user.id) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { data: existing } = await supabase
-        .from("notifications")
-        .select("id")
-        .eq("user_id", post.user_id)
-        .eq("post_id", postId)
-        .eq("type", "reply")
-        .eq("actor_name", user.nickname)
-        .gte("created_at", today.toISOString())
-        .maybeSingle();
-      if (!existing) {
-        await supabase.from("notifications").insert({
-          user_id: post.user_id,
-          actor_name: user.nickname,
-          type: "reply",
-          post_id: postId,
-          post_title: post.title,
-        });
-      }
+      await supabase.rpc("create_notification_once_daily", {
+        p_user_id: post.user_id,
+        p_actor_name: user.nickname,
+        p_type: "reply",
+        p_post_id: postId,
+        p_post_title: post.title,
+      });
     }
 
     setText("");
