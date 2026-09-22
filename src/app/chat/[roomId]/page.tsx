@@ -383,7 +383,7 @@ export default function ChatRoomPage() {
                 )}
                 <div
                   ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
-                  className={`flex items-center gap-2 ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
+                  className={`relative flex items-center ${selectMode && !isMine ? "pl-8" : ""} ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
                   onTouchStart={(e) => handleTouchStart(msg.id, e)}
                   onTouchEnd={handleTouchEnd}
                   onTouchMove={handleTouchEnd}
@@ -391,7 +391,7 @@ export default function ChatRoomPage() {
                   onClick={selectMode ? () => setSelectedIds((prev) => { const next = new Set(prev); if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id); return next; }) : undefined}
                 >
                   {selectMode && (
-                    <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary bg-primary" : "border-zinc-300 dark:border-zinc-600"}`}>
+                    <div className={`absolute left-0 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary bg-primary" : "border-zinc-300 dark:border-zinc-600"}`}>
                       {isSelected && (
                         <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -399,8 +399,7 @@ export default function ChatRoomPage() {
                       )}
                     </div>
                   )}
-                  <div className={`flex min-w-0 flex-1 ${isMine ? "justify-end" : "justify-start"}`}>
-                  <div className={`flex ${selectMode ? "max-w-[calc(75%-2rem)]" : "max-w-[75%]"} items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
+                  <div className={`flex max-w-[75%] items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
                     {!isMine && (
                       <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
                         <svg className="h-8 w-8 translate-y-1 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="currentColor">
@@ -440,7 +439,6 @@ export default function ChatRoomPage() {
                       )}
                       <span className="text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
                     </div>
-                  </div>
                   </div>
                 </div>
                 </div>
