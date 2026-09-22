@@ -107,8 +107,8 @@ export default function ProfilePage() {
 
     const { error } = await supabase.rpc("delete_user");
     if (error) {
-      setMessage({ text: "탈퇴 처리에 실패했습니다.", type: "error" });
-      setTimeout(() => setMessage(null), 2000);
+      setMessage({ text: `탈퇴 실패: ${error.message}`, type: "error" });
+      setTimeout(() => setMessage(null), 5000);
       return;
     }
     await supabase.auth.signOut();
