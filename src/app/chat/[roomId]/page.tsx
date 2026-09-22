@@ -11,6 +11,7 @@ interface Message {
   text: string;
   created_at: string;
   is_read: boolean;
+  edited_at?: string | null;
   reply_to_id?: string | null;
   reply_to_text?: string | null;
   reply_to_sender?: string | null;
@@ -48,6 +49,9 @@ export default function ChatRoomPage() {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuReadyRef = useRef(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [editingMsg, setEditingMsg] = useState<Message | null>(null);
+  const [editText, setEditText] = useState("");
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleTouchStart = (msgId: string, e: ReactTouchEvent) => {
     const touch = e.touches[0];
@@ -358,6 +362,9 @@ export default function ChatRoomPage() {
                       )}
                       <div className={`${msg.reply_to_text ? "px-3.5 pb-2 pt-1.5" : "px-3.5 py-2"}`}>
                         {searchQuery && isMatch ? highlightText(msg.text, searchQuery, !!isActiveMatch) : msg.text}
+                        {msg.edited_at && (
+                          <span className={`ml-1 text-[10px] ${isMine ? "text-white/50" : "text-zinc-400"}`}>(수정됨)</span>
+                        )}
                       </div>
                     </div>
                     <div className={`flex shrink-0 flex-col ${isMine ? "items-end" : "items-start"}`}>
@@ -412,7 +419,7 @@ export default function ChatRoomPage() {
                 답장
               </button>
               {isMine && (Date.now() - new Date(msg.created_at).getTime() < 24 * 60 * 60 * 1000) && (
-                <button onTouchEnd={(e) => { e.stopPropagation(); setContextMenu(null); }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
+                <button onTouchEnd={(e) => { e.stopPropagation(); setContextMenu(null); menuReadyRef.current = false; setEditingMsg(msg); setEditText(msg.text); setTimeout(() => { const ta = editTextareaRef.current; if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; } }, 100); }} onClick={() => { setContextMenu(null); menuReadyRef.current = false; setEditingMsg(msg); setEditText(msg.text); setTimeout(() => { const ta = editTextareaRef.current; if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; } }, 100); }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
                   <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
                   수정
                 </button>
@@ -445,8 +452,64 @@ export default function ChatRoomPage() {
         </div>
       )}
 
+      {/* 수정 패널 */}
+      {!searchOpen && editingMsg && (
+        <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
+          <div className="flex items-start gap-3 px-4 pb-2 pt-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">메시지 수정</p>
+              <p className="mt-0.5 truncate text-xs text-zinc-400">{editingMsg.text}</p>
+            </div>
+            <button onClick={() => { setEditingMsg(null); setEditText(""); }} className="shrink-0 p-0.5 text-zinc-400">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex items-end gap-2 border-t border-zinc-100 px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
+            <textarea
+              ref={editTextareaRef}
+              value={editText}
+              onChange={(e) => {
+                setEditText(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 144) + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!editText.trim()) return;
+                  supabase.from("messages").update({ text: editText.trim(), edited_at: new Date().toISOString() }).eq("id", editingMsg.id).then(() => {
+                    setEditingMsg(null);
+                    setEditText("");
+                  });
+                }
+              }}
+              rows={1}
+              className="flex-1 resize-none rounded-2xl bg-zinc-100 px-4 py-2 text-sm leading-normal outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+              style={{ maxHeight: 144 }}
+            />
+            <button
+              onClick={() => {
+                if (!editText.trim()) return;
+                supabase.from("messages").update({ text: editText.trim(), edited_at: new Date().toISOString() }).eq("id", editingMsg.id).then(() => {
+                  setEditingMsg(null);
+                  setEditText("");
+                });
+              }}
+              disabled={!editText.trim()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 메시지 입력 */}
-      {!searchOpen && (
+      {!searchOpen && !editingMsg && (
         <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
           {/* 답장 프리뷰 */}
           {replyTo && (
