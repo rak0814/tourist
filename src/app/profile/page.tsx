@@ -34,10 +34,9 @@ export default function ProfilePage() {
 
   const handleNicknameChange = async () => {
     if (!user || !nickname.trim()) return;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ nickname: nickname.trim() })
-      .eq("id", user.id);
+    const { error } = await supabase.auth.updateUser({
+      data: { nickname: nickname.trim() },
+    });
 
     if (error) {
       setMessage({ text: "닉네임 변경에 실패했습니다.", type: "error" });
