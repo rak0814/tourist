@@ -11,6 +11,9 @@ interface Message {
   text: string;
   created_at: string;
   is_read: boolean;
+  reply_to_id?: string | null;
+  reply_to_text?: string | null;
+  reply_to_sender?: string | null;
 }
 
 function highlightText(text: string, query: string, isActive: boolean) {
@@ -44,6 +47,7 @@ export default function ChatRoomPage() {
   const [contextMenu, setContextMenu] = useState<{ msgId: string; x: number; y: number } | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuReadyRef = useRef(false);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
 
   const handleTouchStart = (msgId: string, e: ReactTouchEvent) => {
     const touch = e.touches[0];
@@ -214,13 +218,21 @@ export default function ChatRoomPage() {
     if (!user || !text.trim() || sending) return;
     setSending(true);
 
-    await supabase.from("messages").insert({
+    const insert: Record<string, string> = {
       room_id: roomId,
       sender_id: user.id,
       text: text.trim(),
-    });
+    };
+    if (replyTo) {
+      insert.reply_to_id = replyTo.id;
+      insert.reply_to_text = replyTo.text;
+      insert.reply_to_sender = replyTo.sender_id === user.id ? user.nickname : otherNickname;
+    }
+
+    await supabase.from("messages").insert(insert);
 
     setText("");
+    setReplyTo(null);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setSending(false);
   };
@@ -332,6 +344,19 @@ export default function ChatRoomPage() {
                           : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
                       } ${isActiveMatch ? "ring-2 ring-orange-400" : ""}`}
                     >
+                      {msg.reply_to_text && (
+                        <button
+                          onClick={() => { if (msg.reply_to_id) { const el = msgRefs.current.get(msg.reply_to_id); el?.scrollIntoView({ behavior: "smooth", block: "center" }); } }}
+                          className={`mb-1.5 block w-full rounded-lg border-l-2 px-2.5 py-1.5 text-left text-xs ${
+                            isMine
+                              ? "border-white/50 bg-white/15"
+                              : "border-zinc-300 bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-700"
+                          }`}
+                        >
+                          <p className={`font-semibold ${isMine ? "text-white/80" : "text-zinc-500 dark:text-zinc-400"}`}>{msg.reply_to_sender}</p>
+                          <p className={`mt-0.5 truncate ${isMine ? "text-white/60" : "text-zinc-400 dark:text-zinc-500"}`}>{msg.reply_to_text}</p>
+                        </button>
+                      )}
                       {searchQuery && isMatch ? highlightText(msg.text, searchQuery, !!isActiveMatch) : msg.text}
                     </div>
                     <div className={`flex shrink-0 flex-col ${isMine ? "items-end" : "items-start"}`}>
@@ -381,7 +406,7 @@ export default function ChatRoomPage() {
                 <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
                 복사
               </button>
-              <button onTouchEnd={(e) => { e.stopPropagation(); setContextMenu(null); }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
+              <button onTouchEnd={(e) => { e.stopPropagation(); setContextMenu(null); menuReadyRef.current = false; setReplyTo(msg); setTimeout(() => textareaRef.current?.focus(), 100); }} onClick={() => { setContextMenu(null); menuReadyRef.current = false; setReplyTo(msg); setTimeout(() => textareaRef.current?.focus(), 100); }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
                 <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>
                 답장
               </button>
@@ -421,11 +446,27 @@ export default function ChatRoomPage() {
 
       {/* 메시지 입력 */}
       {!searchOpen && (
-        <div className="shrink-0 border-t border-zinc-200 bg-background px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
-          <div className="flex items-end gap-2">
+        <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
+          {/* 답장 프리뷰 */}
+          {replyTo && (
+            <div className="flex items-start gap-3 border-b border-zinc-100 px-4 pb-2 pt-3 dark:border-zinc-800">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                  {replyTo.sender_id === user.id ? user.nickname : otherNickname}에게 답장
+                </p>
+                <p className="mt-0.5 truncate text-xs text-zinc-400">{replyTo.text}</p>
+              </div>
+              <button onClick={() => setReplyTo(null)} className="shrink-0 p-0.5 text-zinc-400">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+          <div className="flex items-end gap-2 px-4 py-2 pb-[max(0.5rem,var(--safe-area-bottom))]">
             <textarea
               ref={textareaRef}
-              placeholder="메시지를 입력하세요"
+              placeholder={replyTo ? "답장 메시지 입력" : "메시지를 입력하세요"}
               value={text}
               onChange={(e) => {
                 setText(e.target.value);
