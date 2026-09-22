@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [editingNickname, setEditingNickname] = useState(false);
   const [nickname, setNickname] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -49,12 +50,30 @@ export default function ProfilePage() {
   };
 
   const handlePasswordChange = async () => {
+    if (!user || !currentPassword) {
+      setMessage({ text: "현재 비밀번호를 입력하세요.", type: "error" });
+      setTimeout(() => setMessage(null), 2000);
+      return;
+    }
     if (password.length < 6) {
-      setMessage({ text: "비밀번호는 6자 이상이어야 합니다.", type: "error" });
+      setMessage({ text: "새 비밀번호는 6자 이상이어야 합니다.", type: "error" });
+      setTimeout(() => setMessage(null), 2000);
       return;
     }
     if (password !== passwordConfirm) {
-      setMessage({ text: "비밀번호가 일치하지 않습니다.", type: "error" });
+      setMessage({ text: "새 비밀번호가 일치하지 않습니다.", type: "error" });
+      setTimeout(() => setMessage(null), 2000);
+      return;
+    }
+
+    // 현재 비밀번호 확인
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+    if (signInError) {
+      setMessage({ text: "현재 비밀번호가 일치하지 않습니다.", type: "error" });
+      setTimeout(() => setMessage(null), 2000);
       return;
     }
 
@@ -63,6 +82,7 @@ export default function ProfilePage() {
       setMessage({ text: error.message, type: "error" });
     } else {
       setChangingPassword(false);
+      setCurrentPassword("");
       setPassword("");
       setPasswordConfirm("");
       setMessage({ text: "비밀번호가 변경되었습니다.", type: "success" });
@@ -182,6 +202,13 @@ export default function ProfilePage() {
                 <p className="text-sm font-semibold">비밀번호 변경</p>
                 <input
                   type="password"
+                  placeholder="현재 비밀번호"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-transparent"
+                />
+                <input
+                  type="password"
                   placeholder="새 비밀번호 (6자 이상)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -189,7 +216,7 @@ export default function ProfilePage() {
                 />
                 <input
                   type="password"
-                  placeholder="비밀번호 확인"
+                  placeholder="새 비밀번호 확인"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
                   className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-transparent"
@@ -198,7 +225,7 @@ export default function ProfilePage() {
                   <button onClick={handlePasswordChange} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">
                     변경
                   </button>
-                  <button onClick={() => { setChangingPassword(false); setPassword(""); setPasswordConfirm(""); }} className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                  <button onClick={() => { setChangingPassword(false); setCurrentPassword(""); setPassword(""); setPasswordConfirm(""); }} className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                     취소
                   </button>
                 </div>
