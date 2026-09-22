@@ -383,7 +383,7 @@ export default function ChatRoomPage() {
                 )}
                 <div
                   ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
-                  className={`flex items-center gap-2 ${selectMode ? "justify-start" : isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
+                  className={`flex items-center gap-2 ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
                   onTouchStart={(e) => handleTouchStart(msg.id, e)}
                   onTouchEnd={handleTouchEnd}
                   onTouchMove={handleTouchEnd}
@@ -399,6 +399,7 @@ export default function ChatRoomPage() {
                       )}
                     </div>
                   )}
+                  <div className={`flex min-w-0 flex-1 ${isMine ? "justify-end" : "justify-start"}`}>
                   <div className={`flex ${selectMode ? "max-w-[calc(75%-2rem)]" : "max-w-[75%]"} items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
                     {!isMine && (
                       <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
@@ -439,6 +440,7 @@ export default function ChatRoomPage() {
                       )}
                       <span className="text-[10px] text-zinc-400">{formatTime(msg.created_at)}</span>
                     </div>
+                  </div>
                   </div>
                 </div>
                 </div>
