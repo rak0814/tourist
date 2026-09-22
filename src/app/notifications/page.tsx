@@ -30,7 +30,8 @@ function formatTime(dateStr: string) {
 
 function typeLabel(type: string) {
   switch (type) {
-    case "like": return "좋아요를 눌렀습니다.";
+    case "like": return "게시글에 좋아요를 눌렀습니다.";
+    case "comment_like": return "댓글에 좋아요를 눌렀습니다.";
     case "comment": return "댓글을 달았습니다.";
     case "reply": return "답글을 달았습니다.";
     default: return "";
@@ -38,7 +39,7 @@ function typeLabel(type: string) {
 }
 
 function TypeIcon({ type }: { type: string }) {
-  if (type === "like") {
+  if (type === "like" || type === "comment_like") {
     return (
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/30">
         <svg className="h-4 w-4 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
