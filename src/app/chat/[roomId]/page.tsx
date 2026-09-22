@@ -12,6 +12,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   edited_at?: string | null;
+  deleted_at?: string | null;
   reply_to_id?: string | null;
   reply_to_text?: string | null;
   reply_to_sender?: string | null;
@@ -52,8 +53,13 @@ export default function ChatRoomPage() {
   const [editingMsg, setEditingMsg] = useState<Message | null>(null);
   const [editText, setEditText] = useState("");
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deletePopup, setDeletePopup] = useState<string | null>(null);
 
   const handleTouchStart = (msgId: string, e: ReactTouchEvent) => {
+    if (selectMode) return;
     const touch = e.touches[0];
     longPressTimer.current = setTimeout(() => {
       longPressTimer.current = null;
@@ -83,13 +89,19 @@ export default function ChatRoomPage() {
     menuReadyRef.current = false;
   };
 
+  // 보이는 메시지 필터
+  const visibleMessages = useMemo(() =>
+    messages.filter((m) => !m.deleted_at && !hiddenIds.has(m.id)),
+    [messages, hiddenIds]
+  );
+
   // 검색 매칭 메시지 ID 목록
   const matchedIds = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return messages
+    return visibleMessages
       .filter((msg) => msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
       .map((msg) => msg.id);
-  }, [messages, searchQuery]);
+  }, [visibleMessages, searchQuery]);
 
   // 검색어 변경 시 마지막 매칭으로 이동
   useEffect(() => {
@@ -152,6 +164,13 @@ export default function ChatRoomPage() {
         .order("created_at", { ascending: true });
 
       if (msgs) setMessages(msgs);
+
+      // 숨김 메시지 로드
+      const { data: hidden } = await supabase
+        .from("hidden_messages")
+        .select("message_id")
+        .eq("user_id", user.id);
+      if (hidden) setHiddenIds(new Set(hidden.map((h) => h.message_id)));
 
       // 상대방 메시지 읽음 처리
       await supabase
@@ -282,36 +301,55 @@ export default function ChatRoomPage() {
   return (
     <div className="flex h-full flex-col">
       {/* 헤더 */}
-      <header className="shrink-0 border-b border-zinc-200 pt-[var(--safe-area-top)] dark:border-zinc-800">
-        <div className="relative flex h-12 items-center justify-center px-4">
-          <button onClick={() => router.push("/chat")} className="absolute left-4 text-zinc-500">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-          <h1 className="text-base font-semibold">{otherNickname}</h1>
-          <button onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(""); }} className="absolute right-4 text-zinc-500">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-          </button>
-        </div>
-        {searchOpen && (
-          <div className="flex items-center gap-2 px-4 pb-2">
-            <input
-              type="text"
-              placeholder="메시지 검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-              className="flex-1 rounded-full bg-zinc-100 px-4 py-1.5 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
-            />
-            <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="text-xs text-zinc-500">
-              취소
+      {selectMode ? (
+        <header className="shrink-0 border-b border-zinc-200 pt-[var(--safe-area-top)] dark:border-zinc-800">
+          <div className="relative flex h-12 items-center justify-center px-4">
+            <button onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }} className="absolute left-4 text-zinc-500">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="text-center">
+              <p className="text-sm font-semibold">삭제</p>
+              <p className="text-[11px] text-zinc-400">삭제할 말풍선 선택</p>
+            </div>
+            <button onClick={() => setSelectedIds(new Set())} className="absolute right-4 rounded-lg bg-zinc-100 px-3 py-1 text-xs font-medium dark:bg-zinc-800">
+              선택 해제
             </button>
           </div>
-        )}
-      </header>
+        </header>
+      ) : (
+        <header className="shrink-0 border-b border-zinc-200 pt-[var(--safe-area-top)] dark:border-zinc-800">
+          <div className="relative flex h-12 items-center justify-center px-4">
+            <button onClick={() => router.push("/chat")} className="absolute left-4 text-zinc-500">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <h1 className="text-base font-semibold">{otherNickname}</h1>
+            <button onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(""); }} className="absolute right-4 text-zinc-500">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+            </button>
+          </div>
+          {searchOpen && (
+            <div className="flex items-center gap-2 px-4 pb-2">
+              <input
+                type="text"
+                placeholder="메시지 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                className="flex-1 rounded-full bg-zinc-100 px-4 py-1.5 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+              />
+              <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="text-xs text-zinc-500">
+                취소
+              </button>
+            </div>
+          )}
+        </header>
+      )}
 
       {/* 메시지 영역 */}
       <main
@@ -323,16 +361,17 @@ export default function ChatRoomPage() {
           setShowScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 200);
         }}
       >
-        {messages.length === 0 ? (
+        {visibleMessages.length === 0 ? (
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
         ) : (
           <div className="space-y-2">
-            {messages.map((msg, idx) => {
+            {visibleMessages.map((msg, idx) => {
               const isMine = msg.sender_id === user.id;
               const isMatch = searchQuery && matchedIds.includes(msg.id);
               const isActiveMatch = isMatch && matchedIds[currentMatchIndex] === msg.id;
-              const prevMsg = messages[idx - 1];
+              const prevMsg = visibleMessages[idx - 1];
               const showDate = !prevMsg || getDateKey(prevMsg.created_at) !== getDateKey(msg.created_at);
+              const isSelected = selectedIds.has(msg.id);
               return (
                 <div key={msg.id}>
                 {showDate && (
@@ -344,13 +383,23 @@ export default function ChatRoomPage() {
                 )}
                 <div
                   ref={(el) => { if (el) msgRefs.current.set(msg.id, el); }}
-                  className={`flex ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
+                  className={`flex items-center gap-2 ${isMine ? "justify-end" : "justify-start"} ${isActiveMatch ? "scale-[1.02] transition-transform" : ""}`}
                   onTouchStart={(e) => handleTouchStart(msg.id, e)}
                   onTouchEnd={handleTouchEnd}
                   onTouchMove={handleTouchEnd}
                   onContextMenu={(e) => e.preventDefault()}
+                  onClick={selectMode ? () => setSelectedIds((prev) => { const next = new Set(prev); if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id); return next; }) : undefined}
                 >
-                  <div className={`flex max-w-[75%] items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
+                  {selectMode && (
+                    <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary bg-primary" : "border-zinc-300 dark:border-zinc-600"}`}>
+                      {isSelected && (
+                        <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
+                  <div className={`flex ${selectMode ? "max-w-[calc(75%-2rem)]" : "max-w-[75%]"} items-end gap-1.5 ${isMine ? "flex-row-reverse" : ""}`}>
                     {!isMine && (
                       <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
                         <svg className="h-8 w-8 translate-y-1 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="currentColor">
@@ -441,7 +490,21 @@ export default function ChatRoomPage() {
                   수정
                 </button>
               )}
-              <button onTouchEnd={(e) => { e.stopPropagation(); setContextMenu(null); }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm text-red-500 active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
+              <button onTouchEnd={(e) => {
+                e.stopPropagation(); setContextMenu(null); menuReadyRef.current = false;
+                if (isMine && (Date.now() - new Date(msg.created_at).getTime() < 24 * 60 * 60 * 1000)) {
+                  setDeletePopup(msg.id);
+                } else {
+                  setSelectMode(true); setSelectedIds(new Set([msg.id]));
+                }
+              }} onClick={() => {
+                setContextMenu(null); menuReadyRef.current = false;
+                if (isMine && (Date.now() - new Date(msg.created_at).getTime() < 24 * 60 * 60 * 1000)) {
+                  setDeletePopup(msg.id);
+                } else {
+                  setSelectMode(true); setSelectedIds(new Set([msg.id]));
+                }
+              }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm text-red-500 active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 삭제
               </button>
@@ -449,6 +512,65 @@ export default function ChatRoomPage() {
           </>
         );
       })()}
+
+      {/* 삭제 팝업 (24시간 이내 내 글) */}
+      {deletePopup && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setDeletePopup(null)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[320px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-900">
+            <button
+              onClick={async () => {
+                await supabase.from("messages").update({ deleted_at: new Date().toISOString() }).eq("id", deletePopup);
+                setDeletePopup(null);
+              }}
+              className="w-full border-b border-zinc-100 py-4 text-center text-sm font-semibold text-red-500 active:bg-zinc-50 dark:border-zinc-800 dark:active:bg-zinc-800"
+            >
+              모두에게서 삭제
+            </button>
+            <button
+              onClick={async () => {
+                if (!user) return;
+                await supabase.from("hidden_messages").upsert({ message_id: deletePopup, user_id: user.id }, { onConflict: "message_id,user_id" });
+                setHiddenIds((prev) => new Set(prev).add(deletePopup));
+                setDeletePopup(null);
+              }}
+              className="w-full border-b border-zinc-100 py-4 text-center text-sm font-semibold text-red-500 active:bg-zinc-50 dark:border-zinc-800 dark:active:bg-zinc-800"
+            >
+              나에게서만 삭제
+            </button>
+            <button
+              onClick={() => setDeletePopup(null)}
+              className="w-full py-4 text-center text-sm font-semibold active:bg-zinc-50 dark:active:bg-zinc-800"
+            >
+              취소
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* 선택 모드 하단 삭제 바 */}
+      {selectMode && (
+        <div className="shrink-0 border-t border-zinc-200 bg-background pb-[max(0.5rem,var(--safe-area-bottom))] dark:border-zinc-800">
+          <button
+            disabled={selectedIds.size === 0}
+            onClick={async () => {
+              if (!user || selectedIds.size === 0) return;
+              const ids = Array.from(selectedIds);
+              const inserts = ids.map((id) => ({ message_id: id, user_id: user.id }));
+              await supabase.from("hidden_messages").upsert(inserts, { onConflict: "message_id,user_id" });
+              setHiddenIds((prev) => { const next = new Set(prev); ids.forEach((id) => next.add(id)); return next; });
+              setSelectMode(false);
+              setSelectedIds(new Set());
+            }}
+            className="flex w-full items-center justify-center gap-2 py-3 text-sm font-semibold text-red-500 active:bg-zinc-50 disabled:opacity-30 dark:active:bg-zinc-900"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+            삭제 {selectedIds.size > 0 && selectedIds.size}
+          </button>
+        </div>
+      )}
 
       {/* 검색 네비게이션 바 */}
       {searchOpen && searchQuery && (
@@ -470,7 +592,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 수정 패널 */}
-      {!searchOpen && editingMsg && (
+      {!searchOpen && !selectMode && editingMsg && (
         <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
           <div className="flex items-start gap-3 px-4 pb-2 pt-3">
             <div className="min-w-0 flex-1">
@@ -527,7 +649,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 메시지 입력 */}
-      {!searchOpen && !editingMsg && (
+      {!searchOpen && !selectMode && !editingMsg && (
         <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
           {/* 답장 프리뷰 */}
           {replyTo && (
