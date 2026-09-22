@@ -38,6 +38,8 @@ export default function ChatRoomPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const [showScrollDown, setShowScrollDown] = useState(false);
   const msgRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [contextMenu, setContextMenu] = useState<{ msgId: string; x: number; y: number } | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -279,7 +281,15 @@ export default function ChatRoomPage() {
       </header>
 
       {/* 메시지 영역 */}
-      <main className="min-h-0 flex-1 overflow-y-auto bg-zinc-50 px-4 py-3 dark:bg-zinc-950">
+      <main
+        ref={mainRef}
+        className="relative min-h-0 flex-1 overflow-y-auto bg-zinc-50 px-4 py-3 dark:bg-zinc-950"
+        onScroll={() => {
+          const el = mainRef.current;
+          if (!el) return;
+          setShowScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 200);
+        }}
+      >
         {messages.length === 0 ? (
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
         ) : (
@@ -337,6 +347,17 @@ export default function ChatRoomPage() {
             })}
             <div ref={bottomRef} />
           </div>
+        )}
+        {/* 최하단 이동 버튼 */}
+        {showScrollDown && (
+          <button
+            onClick={() => bottomRef.current?.scrollIntoView({ behavior: "smooth" })}
+            className="sticky bottom-3 left-full -mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md active:bg-zinc-100 dark:bg-zinc-800 dark:active:bg-zinc-700"
+          >
+            <svg className="h-5 w-5 text-zinc-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+            </svg>
+          </button>
         )}
       </main>
 
