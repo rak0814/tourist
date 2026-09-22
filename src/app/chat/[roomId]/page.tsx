@@ -411,7 +411,7 @@ export default function ChatRoomPage() {
                 <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>
                 답장
               </button>
-              {isMine && (
+              {isMine && (Date.now() - new Date(msg.created_at).getTime() < 24 * 60 * 60 * 1000) && (
                 <button onTouchEnd={(e) => { e.stopPropagation(); setContextMenu(null); }} className="flex w-full items-center gap-2 border-t border-zinc-100 px-4 py-3 text-sm active:bg-zinc-100 dark:border-zinc-700 dark:active:bg-zinc-700">
                   <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
                   수정
