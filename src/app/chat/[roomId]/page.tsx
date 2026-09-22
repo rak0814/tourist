@@ -338,26 +338,27 @@ export default function ChatRoomPage() {
                       </div>
                     )}
                     <div
-                      className={`rounded-2xl px-3.5 py-2 text-sm leading-snug ${
+                      className={`rounded-2xl text-sm leading-snug ${
                         isMine
                           ? "rounded-br-sm bg-primary text-white"
                           : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
-                      } ${isActiveMatch ? "ring-2 ring-orange-400" : ""}`}
+                      } ${isActiveMatch ? "ring-2 ring-orange-400" : ""} ${msg.reply_to_text ? "pt-2.5" : ""}`}
                     >
                       {msg.reply_to_text && (
                         <button
                           onClick={() => { if (msg.reply_to_id) { const el = msgRefs.current.get(msg.reply_to_id); el?.scrollIntoView({ behavior: "smooth", block: "center" }); } }}
-                          className={`mb-1.5 block w-full rounded-lg border-l-2 px-2.5 py-1.5 text-left text-xs ${
-                            isMine
-                              ? "border-white/50 bg-white/15"
-                              : "border-zinc-300 bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-700"
-                          }`}
+                          className="block w-full px-3.5 text-left"
                         >
-                          <p className={`font-semibold ${isMine ? "text-white/80" : "text-zinc-500 dark:text-zinc-400"}`}>{msg.reply_to_sender}</p>
-                          <p className={`mt-0.5 truncate ${isMine ? "text-white/60" : "text-zinc-400 dark:text-zinc-500"}`}>{msg.reply_to_text}</p>
+                          <p className={`text-xs font-bold ${isMine ? "text-white/80" : "text-zinc-600 dark:text-zinc-300"}`}>
+                            {msg.reply_to_sender === (user?.nickname) ? "나" : msg.reply_to_sender}에게 답장
+                          </p>
+                          <p className={`mt-0.5 truncate text-xs ${isMine ? "text-white/60" : "text-zinc-400 dark:text-zinc-500"}`}>{msg.reply_to_text}</p>
+                          <div className={`mt-2 border-t ${isMine ? "border-white/20" : "border-zinc-200 dark:border-zinc-700"}`} />
                         </button>
                       )}
-                      {searchQuery && isMatch ? highlightText(msg.text, searchQuery, !!isActiveMatch) : msg.text}
+                      <div className={`${msg.reply_to_text ? "px-3.5 pb-2 pt-1.5" : "px-3.5 py-2"}`}>
+                        {searchQuery && isMatch ? highlightText(msg.text, searchQuery, !!isActiveMatch) : msg.text}
+                      </div>
                     </div>
                     <div className={`flex shrink-0 flex-col ${isMine ? "items-end" : "items-start"}`}>
                       {isMine && !msg.is_read && (
