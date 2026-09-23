@@ -173,7 +173,7 @@ export default function ChatListPage() {
       })
     );
 
-    setRooms(enriched);
+    setRooms(enriched.filter((r) => r.lastMessage));
     setLoading(false);
   };
 
