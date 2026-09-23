@@ -155,7 +155,7 @@ export default function ChatRoomPage() {
         .eq("id", otherId)
         .single();
 
-      if (otherUser) setOtherNickname(otherUser.nickname);
+      setOtherNickname(otherUser?.nickname ?? "탈퇴한 사용자");
 
       const { data: msgs } = await supabase
         .from("messages")
