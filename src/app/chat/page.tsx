@@ -75,7 +75,7 @@ export default function ChatListPage() {
 
         return {
           ...room,
-          otherNickname: otherUser?.nickname ?? "사용자",
+          otherNickname: otherUser?.nickname ?? "탈퇴한 사용자",
           lastMessage: lastMsg?.text,
           lastMessageTime: lastMsg?.created_at,
           unreadCount: count ?? 0,
