@@ -679,7 +679,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 메시지 입력 */}
-      {!searchOpen && !selectMode && !editingMsg && otherNickname !== "탈퇴한 사용자" && (
+      {!searchOpen && !selectMode && !editingMsg && (
         <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
           {/* 답장 프리뷰 */}
           {replyTo && (
@@ -700,8 +700,9 @@ export default function ChatRoomPage() {
           <div className={`flex items-end gap-2 px-4 pt-2 ${keyboardOpen ? "pb-2" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
             <textarea
               ref={textareaRef}
-              placeholder={replyTo ? "답장 메시지 입력" : "메시지를 입력하세요"}
+              placeholder={otherNickname === "탈퇴한 사용자" ? "대화할 수 없는 상대입니다" : replyTo ? "답장 메시지 입력" : "메시지를 입력하세요"}
               value={text}
+              disabled={otherNickname === "탈퇴한 사용자"}
               onChange={(e) => {
                 setText(e.target.value);
                 e.target.style.height = "auto";
@@ -715,12 +716,12 @@ export default function ChatRoomPage() {
                 }
               }}
               rows={1}
-              className="flex-1 resize-none rounded-2xl bg-zinc-100 px-4 py-2 text-sm leading-normal outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
+              className="flex-1 resize-none rounded-2xl bg-zinc-100 px-4 py-2 text-sm leading-normal outline-none placeholder:text-zinc-400 disabled:opacity-50 dark:bg-zinc-900"
               style={{ maxHeight: 144 }}
             />
             <button
               onClick={handleSend}
-              disabled={!text.trim() || sending}
+              disabled={!text.trim() || sending || otherNickname === "탈퇴한 사용자"}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
