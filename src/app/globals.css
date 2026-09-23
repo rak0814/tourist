@@ -44,6 +44,12 @@ input, textarea, [contenteditable] {
   user-select: text;
 }
 
+/* 게시글 본문 텍스트 선택 허용 */
+.selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* 스플래시 화면 */
 .splash {
   position: fixed;
