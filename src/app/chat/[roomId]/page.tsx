@@ -445,7 +445,7 @@ export default function ChatRoomPage() {
                         )}
                       </div>
                     </div>
-                    <div className={`flex shrink-0 flex-col ${isMine ? "items-end" : "items-start"}`}>
+                    <div className={`flex shrink-0 self-end flex-col ${isMine ? "items-end" : "items-start"}`}>
                       {isMine && !msg.is_read && (
                         <span className="text-[10px] font-bold text-primary">1</span>
                       )}
