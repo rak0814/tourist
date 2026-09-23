@@ -1,4 +1,5 @@
 import { BackButton } from "@/components/back-button";
+import { APP_NAME } from "@/lib/constants";
 
 export default function PrivacyPage() {
   return (
@@ -11,7 +12,7 @@ export default function PrivacyPage() {
       <main className="flex-1 overflow-y-auto px-5 py-6">
         <p className="text-xs text-zinc-400">시행일: 2026년 8월 7일</p>
         <p className="mt-3 text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-          My App(이하 &quot;서비스&quot;)는 이용자의 개인정보를 소중히 여기며, 「개인정보 보호법」 등 관련 법령을 준수합니다. 본 방침을 통해 이용자의 개인정보가 어떻게 수집·이용·보관·파기되는지 안내합니다.
+          {APP_NAME}(이하 &quot;서비스&quot;)는 이용자의 개인정보를 소중히 여기며, 「개인정보 보호법」 등 관련 법령을 준수합니다. 본 방침을 통해 이용자의 개인정보가 어떻게 수집·이용·보관·파기되는지 안내합니다.
         </p>
 
         <Section title="1. 수집하는 개인정보 항목">
