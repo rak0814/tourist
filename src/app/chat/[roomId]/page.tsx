@@ -256,6 +256,8 @@ export default function ChatRoomPage() {
     const tryFocus = () => {
       const ta = editTextareaRef.current;
       if (ta) {
+        ta.style.height = "auto";
+        ta.style.height = Math.min(ta.scrollHeight, 144) + "px";
         ta.focus();
         ta.setSelectionRange(ta.value.length, ta.value.length);
       }
