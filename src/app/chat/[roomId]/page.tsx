@@ -329,7 +329,7 @@ export default function ChatRoomPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
             </button>
-            <h1 className="text-base font-semibold">{otherNickname}</h1>
+            <h1 className={`text-base font-semibold ${otherNickname === "탈퇴한 사용자" ? "text-zinc-400" : ""}`}>{otherNickname}</h1>
             <button onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(""); }} className="absolute right-4 text-zinc-500">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
