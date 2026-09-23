@@ -12,6 +12,7 @@ interface ChatRoom {
   user2_id: string;
   created_at: string;
   otherNickname?: string;
+  otherLocation?: string;
   lastMessage?: string;
   lastMessageTime?: string;
   unreadCount?: number;
@@ -142,7 +143,7 @@ export default function ChatListPage() {
 
         const { data: otherUser } = await supabase
           .from("profiles")
-          .select("nickname")
+          .select("nickname, location")
           .eq("id", otherId)
           .single();
 
@@ -164,6 +165,7 @@ export default function ChatListPage() {
         return {
           ...room,
           otherNickname: otherUser?.nickname ?? "탈퇴한 사용자",
+          otherLocation: otherUser?.location ?? "",
           lastMessage: lastMsg?.text,
           lastMessageTime: lastMsg?.created_at,
           unreadCount: count ?? 0,
@@ -358,7 +360,10 @@ export default function ChatListPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3">
                       <div className="min-w-0 flex-1">
-                        <span className={`text-sm font-semibold ${room.otherNickname === "탈퇴한 사용자" ? "text-zinc-400" : ""}`}>{room.otherNickname}</span>
+                        <span className="flex items-center gap-1.5">
+                          <span className={`text-sm font-semibold ${room.otherNickname === "탈퇴한 사용자" ? "text-zinc-400" : ""}`}>{room.otherNickname}</span>
+                          {room.otherLocation && <span className="text-[11px] text-zinc-400">{room.otherLocation}</span>}
+                        </span>
                         <p className="mt-0.5 text-xs leading-normal text-zinc-400" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                           {room.lastMessage ?? "메시지가 없습니다"}
                         </p>
