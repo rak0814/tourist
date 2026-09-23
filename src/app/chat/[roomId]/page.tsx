@@ -423,7 +423,7 @@ export default function ChatRoomPage() {
                       className={`min-w-0 overflow-hidden rounded-2xl text-sm leading-snug ${
                         isMine
                           ? "rounded-br-sm bg-primary text-white"
-                          : "rounded-bl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
+                          : "rounded-tl-sm bg-white text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
                       } ${isActiveMatch ? "ring-2 ring-orange-400" : ""} ${msg.reply_to_text ? "pt-2.5" : ""}`}
                     >
                       {msg.reply_to_text && (
