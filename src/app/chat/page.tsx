@@ -241,7 +241,7 @@ export default function ChatListPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3">
                       <div className="min-w-0 flex-1">
-                        <span className="text-sm font-semibold">{room.otherNickname}</span>
+                        <span className={`text-sm font-semibold ${room.otherNickname === "탈퇴한 사용자" ? "text-zinc-400" : ""}`}>{room.otherNickname}</span>
                         <p className="mt-0.5 text-xs leading-normal text-zinc-400" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                           {room.lastMessage ?? "메시지가 없습니다"}
                         </p>
