@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type TouchEvent as ReactTouchEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { supabase } from "@/lib/supabase";
@@ -15,6 +15,95 @@ interface ChatRoom {
   lastMessage?: string;
   lastMessageTime?: string;
   unreadCount?: number;
+}
+
+function SwipeableRoom({ children, onLeave }: { children: React.ReactNode; onLeave: () => void }) {
+  const containerRef = useRef<HTMLLIElement>(null);
+  const startX = useRef(0);
+  const currentX = useRef(0);
+  const swiped = useRef(false);
+  const [offset, setOffset] = useState(0);
+  const [showBtn, setShowBtn] = useState(false);
+
+  const onTouchStart = (e: ReactTouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    currentX.current = 0;
+    swiped.current = false;
+  };
+
+  const onTouchMove = (e: ReactTouchEvent) => {
+    const diff = e.touches[0].clientX - startX.current;
+    // 왼쪽 스와이프만
+    if (diff > 0 && !showBtn) return;
+    if (showBtn && diff > 0) {
+      // 열린 상태에서 오른쪽 스와이프 → 닫기
+      const val = Math.min(diff, 80);
+      setOffset(-80 + val);
+      currentX.current = diff;
+      swiped.current = true;
+      return;
+    }
+    const val = Math.max(diff, -80);
+    setOffset(val);
+    currentX.current = diff;
+    if (Math.abs(diff) > 10) swiped.current = true;
+  };
+
+  const onTouchEnd = () => {
+    if (showBtn) {
+      // 열린 상태
+      if (currentX.current > 30) {
+        setOffset(0);
+        setShowBtn(false);
+      } else {
+        setOffset(-80);
+      }
+    } else {
+      if (currentX.current < -30) {
+        setOffset(-80);
+        setShowBtn(true);
+      } else {
+        setOffset(0);
+      }
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (swiped.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  return (
+    <li ref={containerRef} className="relative overflow-hidden">
+      <div
+        className="absolute right-0 top-0 flex h-full w-20 items-center justify-center bg-red-500"
+      >
+        <button
+          onClick={() => {
+            if (confirm("채팅방을 나가시겠습니까?")) onLeave();
+          }}
+          className="flex flex-col items-center gap-0.5 text-white"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+          </svg>
+          <span className="text-xs font-semibold">나가기</span>
+        </button>
+      </div>
+      <div
+        className="relative"
+        style={{ transform: `translateX(${offset}px)`, transition: currentX.current === 0 ? "transform 0.2s ease" : "none" }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClickCapture={handleClick}
+      >
+        {children}
+      </div>
+    </li>
+  );
 }
 
 export default function ChatListPage() {
@@ -136,6 +225,35 @@ export default function ChatListPage() {
     router.push(`/chat/${newRoom.id}`);
   };
 
+  const leaveRoom = async (roomId: string) => {
+    if (!user) return;
+    // 채팅방의 내 메시지를 숨김 처리
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("room_id", roomId);
+    if (msgs && msgs.length > 0) {
+      const inserts = msgs.map((m) => ({ message_id: m.id, user_id: user.id }));
+      await supabase.from("hidden_messages").upsert(inserts, { onConflict: "message_id,user_id" });
+    }
+    // 채팅방에서 내 ID 제거
+    const { data: room } = await supabase.from("chat_rooms").select("user1_id, user2_id").eq("id", roomId).single();
+    if (room) {
+      if (room.user1_id === user.id) {
+        await supabase.from("chat_rooms").update({ user1_id: null }).eq("id", roomId);
+      } else {
+        await supabase.from("chat_rooms").update({ user2_id: null }).eq("id", roomId);
+      }
+      // 둘 다 나갔으면 채팅방 삭제
+      const updated = room.user1_id === user.id ? { ...room, user1_id: null } : { ...room, user2_id: null };
+      if (!updated.user1_id && !updated.user2_id) {
+        await supabase.from("messages").delete().eq("room_id", roomId);
+        await supabase.from("chat_rooms").delete().eq("id", roomId);
+      }
+    }
+    setRooms((prev) => prev.filter((r) => r.id !== roomId));
+  };
+
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
     const now = new Date();
@@ -228,10 +346,10 @@ export default function ChatListPage() {
         ) : (
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {rooms.map((room) => (
-              <li key={room.id}>
+              <SwipeableRoom key={room.id} onLeave={() => leaveRoom(room.id)}>
                 <button
                   onClick={() => router.push(`/chat/${room.id}`)}
-                  className="flex w-full items-center gap-3 px-4 py-2 text-left active:bg-zinc-50 dark:active:bg-zinc-900"
+                  className="flex w-full items-center gap-3 bg-background px-4 py-2 text-left active:bg-zinc-50 dark:active:bg-zinc-900"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
                     <svg className="h-10 w-10 translate-y-1 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="currentColor">
@@ -259,7 +377,7 @@ export default function ChatListPage() {
                     </div>
                   </div>
                 </button>
-              </li>
+              </SwipeableRoom>
             ))}
           </ul>
         )}
