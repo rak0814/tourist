@@ -166,78 +166,23 @@ export default function ProfilePage() {
         {/* 메뉴 */}
         <div className="px-4 py-4">
           {/* 닉네임 변경 */}
-          <div className="border-b border-zinc-100 pb-4 dark:border-zinc-800">
-            {editingNickname ? (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold">닉네임 변경</p>
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-transparent"
-                />
-                <div className="flex gap-2">
-                  <button onClick={handleNicknameChange} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">
-                    저장
-                  </button>
-                  <button onClick={() => { setEditingNickname(false); setNickname(user.nickname); }} className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                    취소
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setEditingNickname(true)} className="flex w-full items-center justify-between py-1">
-                <span className="text-sm">닉네임 변경</span>
-                <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-            )}
+          <div className="border-b border-zinc-100 dark:border-zinc-800">
+            <button onClick={() => { setEditingNickname(true); setNickname(user.nickname); }} className="flex w-full items-center justify-between py-4">
+              <span className="text-sm">닉네임 변경</span>
+              <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
           </div>
 
           {/* 비밀번호 변경 */}
-          <div className="border-b border-zinc-100 py-4 dark:border-zinc-800">
-            {changingPassword ? (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold">비밀번호 변경</p>
-                <input
-                  type="password"
-                  placeholder="현재 비밀번호"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-transparent"
-                />
-                <input
-                  type="password"
-                  placeholder="새 비밀번호 (6자 이상)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-transparent"
-                />
-                <input
-                  type="password"
-                  placeholder="새 비밀번호 확인"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-transparent"
-                />
-                <div className="flex gap-2">
-                  <button onClick={handlePasswordChange} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">
-                    변경
-                  </button>
-                  <button onClick={() => { setChangingPassword(false); setCurrentPassword(""); setPassword(""); setPasswordConfirm(""); }} className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                    취소
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setChangingPassword(true)} className="flex w-full items-center justify-between py-1">
-                <span className="text-sm">비밀번호 변경</span>
-                <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-            )}
+          <div className="border-b border-zinc-100 dark:border-zinc-800">
+            <button onClick={() => setChangingPassword(true)} className="flex w-full items-center justify-between py-4">
+              <span className="text-sm">비밀번호 변경</span>
+              <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
           </div>
 
           {/* 회원탈퇴 */}
@@ -248,6 +193,87 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+
+      {/* 닉네임 변경 모달 */}
+      {editingNickname && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => { setEditingNickname(false); setNickname(user.nickname); }} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base font-bold">닉네임 변경</h2>
+            <input
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              autoFocus
+              className="mt-4 w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-zinc-800"
+            />
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => { setEditingNickname(false); setNickname(user.nickname); }}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-semibold dark:bg-zinc-800 dark:text-zinc-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleNicknameChange}
+                disabled={!nickname.trim()}
+                className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 비밀번호 변경 모달 */}
+      {changingPassword && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => { setChangingPassword(false); setCurrentPassword(""); setPassword(""); setPasswordConfirm(""); }} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base font-bold">비밀번호 변경</h2>
+            <div className="mt-4 space-y-2">
+              <input
+                type="password"
+                placeholder="현재 비밀번호"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoFocus
+                className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-zinc-800"
+              />
+              <input
+                type="password"
+                placeholder="새 비밀번호 (6자 이상)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-zinc-800"
+              />
+              <input
+                type="password"
+                placeholder="새 비밀번호 확인"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-zinc-800"
+              />
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => { setChangingPassword(false); setCurrentPassword(""); setPassword(""); setPasswordConfirm(""); }}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-semibold dark:bg-zinc-800 dark:text-zinc-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={handlePasswordChange}
+                disabled={!currentPassword || !password || !passwordConfirm}
+                className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                변경
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 회원탈퇴 모달 */}
       {showDeleteModal && (
