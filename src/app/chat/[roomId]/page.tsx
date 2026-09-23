@@ -632,7 +632,7 @@ export default function ChatRoomPage() {
               </svg>
             </button>
           </div>
-          <div className={`flex items-end gap-2 border-t border-zinc-100 px-4 pt-2 dark:border-zinc-800 ${keyboardOpen ? "pb-1" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
+          <div className={`flex items-end gap-2 border-t border-zinc-100 px-4 pt-2 dark:border-zinc-800 ${keyboardOpen ? "pb-2" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
             <textarea
               ref={editTextareaRef}
               autoFocus
@@ -694,7 +694,7 @@ export default function ChatRoomPage() {
               </button>
             </div>
           )}
-          <div className={`flex items-end gap-2 px-4 pt-2 ${keyboardOpen ? "pb-1" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
+          <div className={`flex items-end gap-2 px-4 pt-2 ${keyboardOpen ? "pb-2" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
             <textarea
               ref={textareaRef}
               placeholder={replyTo ? "답장 메시지 입력" : "메시지를 입력하세요"}
