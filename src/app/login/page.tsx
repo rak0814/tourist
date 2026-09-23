@@ -108,9 +108,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[400px]">
         {/* 로고 헤더 */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-2xl font-extrabold text-white">
-            M
-          </div>
+          <img src="/icons/icon-192.png" alt="로고" className="mx-auto mb-3 h-14 w-14 rounded-2xl" />
           <h1 className="text-[22px] font-bold text-[#111] dark:text-zinc-100">My App</h1>
           <p className="mt-1 text-[13px] text-[#888]">
             {tab === "forgot" ? "가입한 이메일을 입력하세요" : "이메일로 간편하게 시작하세요"}
