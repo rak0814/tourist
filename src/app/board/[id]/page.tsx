@@ -74,7 +74,7 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
         </div>
 
         {/* 본문 */}
-        <div className="px-4 pb-4">
+        <div className="selectable-text px-4 pb-4">
           <h2 className="text-lg font-bold leading-snug">{post.title}</h2>
           <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{post.content}</p>
         </div>
