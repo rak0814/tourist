@@ -14,7 +14,7 @@ interface Comment {
   created_at: string;
 }
 
-export function CommentThread({ comments, postId }: { comments: Comment[]; postId: string }) {
+export function CommentThread({ comments, postId, postUserId }: { comments: Comment[]; postId: string; postUserId?: string }) {
   const rootComments = comments.filter((c) => !c.parent_id);
   const replies = comments.filter((c) => c.parent_id);
   const getReplies = (parentId: string) => replies.filter((c) => c.parent_id === parentId);
@@ -36,13 +36,14 @@ export function CommentThread({ comments, postId }: { comments: Comment[]; postI
                 <CommentItem
                   comment={comment}
                   postId={postId}
+                  postUserId={postUserId}
                   showReplyButton={!hasReplies}
                 />
                 {hasReplies && (
                   <>
                     <div className="ml-8 border-l border-zinc-100 dark:border-zinc-800">
                       {commentReplies.map((reply) => (
-                        <CommentItem key={reply.id} comment={reply} isReply />
+                        <CommentItem key={reply.id} comment={reply} isReply postUserId={postUserId} />
                       ))}
                     </div>
                     <ReplyInput postId={postId} parentId={comment.id} />
