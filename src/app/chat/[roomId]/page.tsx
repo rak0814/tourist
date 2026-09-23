@@ -260,6 +260,7 @@ export default function ChatRoomPage() {
         ta.style.height = Math.min(ta.scrollHeight, 144) + "px";
         ta.focus();
         ta.setSelectionRange(ta.value.length, ta.value.length);
+        ta.scrollTop = ta.scrollHeight;
       }
     };
     // 모바일에서 렌더링 후 포커스가 잡히도록 여러 타이밍에 시도
