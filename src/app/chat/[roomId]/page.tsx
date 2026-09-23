@@ -57,6 +57,17 @@ export default function ChatRoomPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deletePopup, setDeletePopup] = useState<string | null>(null);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      setKeyboardOpen(vv.height < window.innerHeight * 0.75);
+    };
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
 
   const handleTouchStart = (msgId: string, e: ReactTouchEvent) => {
     if (selectMode) return;
@@ -562,7 +573,7 @@ export default function ChatRoomPage() {
 
       {/* 선택 모드 하단 삭제 바 */}
       {selectMode && (
-        <div className="shrink-0 border-t border-zinc-200 bg-background pb-[env(safe-area-inset-bottom)] dark:border-zinc-800">
+        <div className={`shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800 ${keyboardOpen ? "" : "pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
           <button
             disabled={selectedIds.size === 0}
             onClick={async () => {
@@ -586,7 +597,7 @@ export default function ChatRoomPage() {
 
       {/* 검색 네비게이션 바 */}
       {searchOpen && searchQuery && (
-        <div className="flex shrink-0 items-center justify-center gap-4 border-t border-zinc-200 bg-background px-4 py-2 pb-[env(safe-area-inset-bottom)] dark:border-zinc-800">
+        <div className={`flex shrink-0 items-center justify-center gap-4 border-t border-zinc-200 bg-background px-4 py-2 dark:border-zinc-800 ${keyboardOpen ? "" : "pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
           <button onClick={goToPrev} disabled={matchedIds.length === 0} className="rounded-full p-1.5 text-zinc-500 active:bg-zinc-100 disabled:opacity-30 dark:active:bg-zinc-800">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
@@ -617,7 +628,7 @@ export default function ChatRoomPage() {
               </svg>
             </button>
           </div>
-          <div className="flex items-end gap-2 border-t border-zinc-100 px-4 pb-1 pt-2 dark:border-zinc-800">
+          <div className={`flex items-end gap-2 border-t border-zinc-100 px-4 pt-2 dark:border-zinc-800 ${keyboardOpen ? "pb-1" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
             <textarea
               ref={editTextareaRef}
               autoFocus
@@ -679,7 +690,7 @@ export default function ChatRoomPage() {
               </button>
             </div>
           )}
-          <div className="flex items-end gap-2 px-4 pb-1 pt-2">
+          <div className={`flex items-end gap-2 px-4 pt-2 ${keyboardOpen ? "pb-1" : "pb-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
             <textarea
               ref={textareaRef}
               placeholder={replyTo ? "답장 메시지 입력" : "메시지를 입력하세요"}
