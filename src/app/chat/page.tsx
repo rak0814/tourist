@@ -17,7 +17,7 @@ interface ChatRoom {
   unreadCount?: number;
 }
 
-function SwipeableRoom({ children, onLeave }: { children: React.ReactNode; onLeave: () => void }) {
+function SwipeableRoom({ children, onLeave }: { children: React.ReactNode; onLeave: () => void; }) {
   const containerRef = useRef<HTMLLIElement>(null);
   const startX = useRef(0);
   const currentX = useRef(0);
@@ -81,9 +81,7 @@ function SwipeableRoom({ children, onLeave }: { children: React.ReactNode; onLea
         className="absolute right-0 top-0 flex h-full w-20 items-center justify-center bg-red-500"
       >
         <button
-          onClick={() => {
-            if (confirm("채팅방을 나가시겠습니까?")) onLeave();
-          }}
+          onClick={onLeave}
           className="flex flex-col items-center gap-0.5 text-white"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -113,6 +111,7 @@ export default function ChatListPage() {
   const [loading, setLoading] = useState(true);
   const [searchEmail, setSearchEmail] = useState("");
   const [showNewChat, setShowNewChat] = useState(false);
+  const [leaveTarget, setLeaveTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -346,7 +345,7 @@ export default function ChatListPage() {
         ) : (
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {rooms.map((room) => (
-              <SwipeableRoom key={room.id} onLeave={() => leaveRoom(room.id)}>
+              <SwipeableRoom key={room.id} onLeave={() => setLeaveTarget(room.id)}>
                 <button
                   onClick={() => router.push(`/chat/${room.id}`)}
                   className="flex w-full items-center gap-3 bg-background px-4 py-2 text-left active:bg-zinc-50 dark:active:bg-zinc-900"
@@ -382,6 +381,36 @@ export default function ChatListPage() {
           </ul>
         )}
       </main>
+
+      {/* 나가기 확인 팝업 */}
+      {leaveTarget && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setLeaveTarget(null)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base font-bold">채팅방 나가기</h2>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+              채팅방을 나가면 대화 내용이 모두 삭제되며 복구할 수 없습니다.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setLeaveTarget(null)}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-semibold dark:bg-zinc-800 dark:text-zinc-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={async () => {
+                  await leaveRoom(leaveTarget);
+                  setLeaveTarget(null);
+                }}
+                className="flex-1 rounded-lg bg-red-500 py-3 text-sm font-semibold text-white"
+              >
+                나가기
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <BottomNav />
     </div>
