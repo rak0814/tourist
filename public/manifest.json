@@ -1,6 +1,6 @@
 {
-  "name": "My App",
-  "short_name": "MyApp",
+  "name": "버디버디",
+  "short_name": "버디버디",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
