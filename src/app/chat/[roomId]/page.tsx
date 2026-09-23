@@ -74,7 +74,7 @@ export default function ChatRoomPage() {
   }, []);
 
   const handleTouchStart = (msgId: string, e: ReactTouchEvent) => {
-    if (selectMode) return;
+    if (selectMode || otherNickname === "탈퇴한 사용자") return;
     const touch = e.touches[0];
     longPressTimer.current = setTimeout(() => {
       longPressTimer.current = null;
@@ -622,7 +622,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 수정 패널 */}
-      {!searchOpen && !selectMode && editingMsg && (
+      {!searchOpen && !selectMode && editingMsg && otherNickname !== "탈퇴한 사용자" && (
         <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
           <div className="flex items-start gap-3 px-4 pb-2 pt-3">
             <div className="min-w-0 flex-1">
@@ -679,7 +679,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 메시지 입력 */}
-      {!searchOpen && !selectMode && !editingMsg && (
+      {!searchOpen && !selectMode && !editingMsg && otherNickname !== "탈퇴한 사용자" && (
         <div className="shrink-0 border-t border-zinc-200 bg-background dark:border-zinc-800">
           {/* 답장 프리뷰 */}
           {replyTo && (
