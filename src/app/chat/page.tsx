@@ -231,7 +231,7 @@ export default function ChatListPage() {
               <li key={room.id}>
                 <button
                   onClick={() => router.push(`/chat/${room.id}`)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-zinc-50 dark:active:bg-zinc-900"
+                  className="flex w-full items-center gap-3 px-4 py-2 text-left active:bg-zinc-50 dark:active:bg-zinc-900"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
                     <svg className="h-10 w-10 translate-y-1 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="currentColor">
