@@ -81,7 +81,7 @@ function SwipeableRoom({ children, onLeave }: { children: React.ReactNode; onLea
         className="absolute right-0 top-0 flex h-full w-20 items-center justify-center bg-red-500"
       >
         <button
-          onClick={onLeave}
+          onClick={() => { setOffset(0); setShowBtn(false); onLeave(); }}
           className="flex flex-col items-center gap-0.5 text-white"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
