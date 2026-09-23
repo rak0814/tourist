@@ -1,4 +1,5 @@
 import { BackButton } from "@/components/back-button";
+import { APP_NAME } from "@/lib/constants";
 
 export default function TermsPage() {
   return (
@@ -12,7 +13,7 @@ export default function TermsPage() {
         <p className="text-xs text-zinc-400">시행일: 2026년 8월 7일</p>
 
         <Section title="제1조 (목적)">
-          <p>본 약관은 My App(이하 &quot;서비스&quot;)가 제공하는 모든 서비스의 이용과 관련하여 서비스 운영자(이하 &quot;운영자&quot;)와 이용자 간의 권리, 의무, 책임 및 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
+          <p>본 약관은 {APP_NAME}(이하 &quot;서비스&quot;)가 제공하는 모든 서비스의 이용과 관련하여 서비스 운영자(이하 &quot;운영자&quot;)와 이용자 간의 권리, 의무, 책임 및 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
         </Section>
 
         <Section title="제2조 (정의)">
