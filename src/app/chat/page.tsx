@@ -292,49 +292,14 @@ export default function ChatListPage() {
         <div className="relative flex h-12 items-center justify-center px-4">
           <h1 className="text-base font-semibold">채팅</h1>
           <button
-            onClick={() => setShowNewChat((v) => !v)}
+            onClick={() => { setShowNewChat(true); setSearchEmail(""); }}
             className="absolute right-4 text-zinc-500 active:text-zinc-800 dark:active:text-zinc-200"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              {showNewChat ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              )}
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </button>
         </div>
-        {showNewChat && (
-          <div className="flex items-center gap-2 px-4 pb-2">
-            <div className="relative flex-1">
-              <input
-                type="email"
-                placeholder="상대방 이메일로 채팅 시작"
-                value={searchEmail}
-                onChange={(e) => setSearchEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") startChat();
-                }}
-                autoFocus
-                className="w-full rounded-full bg-zinc-100 px-4 py-1.5 pr-8 text-sm outline-none placeholder:text-zinc-400 dark:bg-zinc-900"
-              />
-              {searchEmail && (
-                <button onClick={() => setSearchEmail("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <button
-              onClick={startChat}
-              disabled={!searchEmail.trim()}
-              className="shrink-0 text-sm font-semibold text-primary"
-            >
-              시작
-            </button>
-          </div>
-        )}
       </header>
 
       <main className="flex-1 overflow-y-auto">
@@ -386,6 +351,40 @@ export default function ChatListPage() {
           </ul>
         )}
       </main>
+
+      {/* 새 채팅 팝업 */}
+      {showNewChat && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowNewChat(false)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] max-w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base font-bold">새 채팅</h2>
+            <input
+              type="email"
+              placeholder="상대방 이메일을 입력하세요"
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && startChat()}
+              autoFocus
+              className="mt-4 w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-zinc-800"
+            />
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setShowNewChat(false)}
+                className="flex-1 rounded-lg bg-zinc-100 py-3 text-sm font-semibold dark:bg-zinc-800 dark:text-zinc-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={startChat}
+                disabled={!searchEmail.trim()}
+                className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                시작
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 나가기 확인 팝업 */}
       {leaveTarget && (
