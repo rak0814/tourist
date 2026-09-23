@@ -411,7 +411,7 @@ export default function ChatRoomPage() {
                       )}
                     </div>
                   )}
-                  <div className={`flex max-w-[85%] gap-1.5 ${isMine ? "flex-row-reverse items-end" : "items-start"}`}>
+                  <div className={`flex max-w-[90%] gap-1.5 ${isMine ? "flex-row-reverse items-end" : "items-start"}`}>
                     {!isMine && (
                       <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-300 bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-700">
                         <svg className="h-8 w-8 translate-y-1 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="currentColor">
