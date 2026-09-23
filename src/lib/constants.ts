@@ -1,1 +1,1 @@
-export const APP_NAME = "버디버디";
+export const APP_NAME = "핀톡";
