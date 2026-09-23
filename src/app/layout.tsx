@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { APP_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "My App",
+  title: APP_NAME,
   description: "Mobile web app",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "My App",
+    title: APP_NAME,
   },
   icons: {
     icon: [
