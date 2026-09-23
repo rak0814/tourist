@@ -128,7 +128,7 @@ export default function PrivacyPage() {
                 </tr>
                 <tr>
                   <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">연락처</td>
-                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">generalist.app.help@gmail.com</td>
+                  <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-700">rak0418@naver.com</td>
                 </tr>
               </tbody>
             </table>
