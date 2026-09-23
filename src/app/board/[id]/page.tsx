@@ -85,7 +85,7 @@ export default async function BoardDetailPage({ params }: { params: Promise<{ id
         </div>
 
         {/* 댓글 목록 */}
-        <CommentThread comments={comments ?? []} postId={post.id} />
+        <CommentThread comments={comments ?? []} postId={post.id} postUserId={post.user_id} />
       </main>
 
       {/* 댓글 입력 (하단 고정) */}
