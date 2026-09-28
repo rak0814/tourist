@@ -633,7 +633,7 @@ export default function ChatRoomPage() {
               <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">메시지 수정</p>
               <p className="mt-0.5 truncate text-xs text-zinc-400">{editingMsg.text}</p>
             </div>
-            <button onTouchEnd={(e) => { e.preventDefault(); setEditingMsg(null); setEditText(""); }} onClick={() => { setEditingMsg(null); setEditText(""); }} className="shrink-0 p-2 text-zinc-400">
+            <button onTouchEnd={(e) => { e.preventDefault(); editTextareaRef.current?.blur(); setEditingMsg(null); setEditText(""); }} onClick={() => { editTextareaRef.current?.blur(); setEditingMsg(null); setEditText(""); }} className="shrink-0 p-2 text-zinc-400">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
@@ -694,7 +694,7 @@ export default function ChatRoomPage() {
                 </p>
                 <p className="mt-0.5 truncate text-xs text-zinc-400">{replyTo.text}</p>
               </div>
-              <button onTouchEnd={(e) => { e.preventDefault(); setReplyTo(null); }} onClick={() => setReplyTo(null)} className="shrink-0 p-2 text-zinc-400">
+              <button onTouchEnd={(e) => { e.preventDefault(); textareaRef.current?.blur(); setReplyTo(null); }} onClick={() => { textareaRef.current?.blur(); setReplyTo(null); }} className="shrink-0 p-2 text-zinc-400">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
