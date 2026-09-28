@@ -381,6 +381,10 @@ export default function ChatRoomPage() {
           if (!el) return;
           setShowScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 200);
         }}
+        onTouchEnd={() => {
+          if (editingMsg) { setEditingMsg(null); setEditText(""); }
+          if (replyTo) setReplyTo(null);
+        }}
       >
         {visibleMessages.length === 0 ? (
           <p className="py-10 text-center text-xs text-zinc-400">메시지를 보내 대화를 시작하세요.</p>
@@ -629,7 +633,7 @@ export default function ChatRoomPage() {
               <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">메시지 수정</p>
               <p className="mt-0.5 truncate text-xs text-zinc-400">{editingMsg.text}</p>
             </div>
-            <button onClick={() => { setEditingMsg(null); setEditText(""); }} className="shrink-0 p-0.5 text-zinc-400">
+            <button onTouchEnd={(e) => { e.preventDefault(); setEditingMsg(null); setEditText(""); }} onClick={() => { setEditingMsg(null); setEditText(""); }} className="shrink-0 p-2 text-zinc-400">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
@@ -690,7 +694,7 @@ export default function ChatRoomPage() {
                 </p>
                 <p className="mt-0.5 truncate text-xs text-zinc-400">{replyTo.text}</p>
               </div>
-              <button onClick={() => setReplyTo(null)} className="shrink-0 p-0.5 text-zinc-400">
+              <button onTouchEnd={(e) => { e.preventDefault(); setReplyTo(null); }} onClick={() => setReplyTo(null)} className="shrink-0 p-2 text-zinc-400">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
