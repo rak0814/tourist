@@ -10,21 +10,24 @@ declare global {
 
 type CategoryCode = "FD6" | "CE7" | "HP8" | "PM9" | "BK9" | "AT4";
 
-const CATEGORIES: { code: CategoryCode; label: string }[] = [
-  { code: "FD6", label: "음식점" },
-  { code: "CE7", label: "카페" },
-  { code: "HP8", label: "병원" },
-  { code: "PM9", label: "약국" },
-  { code: "BK9", label: "은행" },
-  { code: "AT4", label: "관광명소" },
+const CATEGORIES: { code: CategoryCode; label: string; icon: string; color: string }[] = [
+  { code: "FD6", label: "음식점", icon: "🍽️", color: "#EF4444" },
+  { code: "CE7", label: "카페", icon: "☕", color: "#92400E" },
+  { code: "HP8", label: "병원", icon: "🏥", color: "#2563EB" },
+  { code: "PM9", label: "약국", icon: "💊", color: "#16A34A" },
+  { code: "BK9", label: "은행", icon: "🏦", color: "#7C3AED" },
+  { code: "AT4", label: "관광명소", icon: "📍", color: "#EA580C" },
 ];
+
+function getCategoryStyle(code: CategoryCode) {
+  return CATEGORIES.find((c) => c.code === code) ?? CATEGORIES[0];
+}
 
 export function KakaoMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CategoryCode>("FD6");
   const [places, setPlaces] = useState<any[]>([]);
-  const markersRef = useRef<any[]>([]);
   const overlaysRef = useRef<any[]>([]);
   const mapInstanceRef = useRef<any>(null);
   const userPosRef = useRef<any>(null);
@@ -85,10 +88,39 @@ export function KakaoMap() {
   }, [loaded]);
 
   function clearMarkers() {
-    markersRef.current.forEach((m) => m.setMap(null));
     overlaysRef.current.forEach((o) => o.setMap(null));
-    markersRef.current = [];
     overlaysRef.current = [];
+  }
+
+  function createPlaceOverlay(
+    map: any,
+    position: any,
+    name: string,
+    category: CategoryCode
+  ) {
+    const { kakao } = window;
+    const style = getCategoryStyle(category);
+
+    const content = document.createElement("div");
+    content.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
+    content.innerHTML = `
+      <div style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:white;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15);border:1.5px solid ${style.color};white-space:nowrap;">
+        <span style="font-size:14px;line-height:1;">${style.icon}</span>
+        <span style="font-size:11px;font-weight:600;color:#1a1a1a;max-width:120px;overflow:hidden;text-overflow:ellipsis;">${name}</span>
+      </div>
+      <div style="width:2px;height:8px;background:${style.color};"></div>
+      <div style="width:8px;height:8px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+    `;
+
+    const overlay = new kakao.maps.CustomOverlay({
+      map,
+      position,
+      content,
+      yAnchor: 1,
+      xAnchor: 0.5,
+    });
+
+    return overlay;
   }
 
   function searchPlaces(map: any, center: any, category: CategoryCode) {
@@ -110,20 +142,8 @@ export function KakaoMap() {
           const position = new kakao.maps.LatLng(place.y, place.x);
           bounds.extend(position);
 
-          const marker = new kakao.maps.Marker({ map, position });
-          markersRef.current.push(marker);
-
-          const overlay = new kakao.maps.CustomOverlay({
-            content: `<div style="padding:4px 8px;background:white;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.15);font-size:12px;font-weight:500;white-space:nowrap;border:1px solid #e4e4e7;">${place.place_name}</div>`,
-            position,
-            yAnchor: 2.2,
-          });
+          const overlay = createPlaceOverlay(map, position, place.place_name, category);
           overlaysRef.current.push(overlay);
-
-          kakao.maps.event.addListener(marker, "click", () => {
-            overlaysRef.current.forEach((o) => o.setMap(null));
-            overlay.setMap(map);
-          });
         });
 
         if (userPosRef.current) bounds.extend(userPosRef.current);
@@ -150,12 +170,6 @@ export function KakaoMap() {
     const position = new kakao.maps.LatLng(place.y, place.x);
     mapInstanceRef.current.setCenter(position);
     mapInstanceRef.current.setLevel(3);
-
-    overlaysRef.current.forEach((o) => o.setMap(null));
-    const idx = places.indexOf(place);
-    if (idx >= 0 && overlaysRef.current[idx]) {
-      overlaysRef.current[idx].setMap(mapInstanceRef.current);
-    }
   }
 
   return (
