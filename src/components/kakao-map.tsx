@@ -138,35 +138,16 @@ export function KakaoMap() {
   function highlightOverlay(idx: number) {
     setSelectedIdx(idx);
     overlaysRef.current.forEach((item, i) => {
-      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
       const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      if (!bubble || !nameEl) return;
+      if (!nameEl) return;
 
       if (i === idx) {
-        // 선택된 오버레이: 확대 + 이름 표시 + 색상 배경
-        const style = getCategoryStyle(activeCategory);
-        item.el.style.transform = "scale(1.15)";
-        item.el.style.zIndex = "100";
-        bubble.style.background = style.color;
-        bubble.style.borderColor = style.color;
-        bubble.style.boxShadow = `0 4px 12px ${style.color}66`;
-        bubble.style.padding = "5px 12px";
-        nameEl.style.fontSize = "12px";
+        nameEl.style.fontSize = "11px";
         nameEl.style.maxWidth = "140px";
         nameEl.style.opacity = "1";
-        nameEl.style.color = "white";
         nameEl.style.marginLeft = "4px";
-        // 아이콘 내 이모지는 그대로
         (item.overlay as any).setZIndex(100);
       } else {
-        // 비선택 오버레이: 축소 + 이름 숨김
-        item.el.style.transform = "scale(0.85)";
-        item.el.style.zIndex = "1";
-        item.el.style.opacity = "0.6";
-        bubble.style.background = "white";
-        bubble.style.borderColor = getCategoryStyle(activeCategory).color;
-        bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
-        bubble.style.padding = "4px 8px";
         nameEl.style.fontSize = "0";
         nameEl.style.maxWidth = "0";
         nameEl.style.opacity = "0";
@@ -179,16 +160,8 @@ export function KakaoMap() {
   function resetOverlays() {
     setSelectedIdx(null);
     overlaysRef.current.forEach((item) => {
-      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
       const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      if (!bubble || !nameEl) return;
-      item.el.style.transform = "scale(1)";
-      item.el.style.zIndex = "1";
-      item.el.style.opacity = "1";
-      bubble.style.background = "white";
-      bubble.style.borderColor = getCategoryStyle(activeCategory).color;
-      bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
-      bubble.style.padding = "4px 8px";
+      if (!nameEl) return;
       nameEl.style.fontSize = "0";
       nameEl.style.maxWidth = "0";
       nameEl.style.opacity = "0";
@@ -239,12 +212,7 @@ export function KakaoMap() {
     }
   }
 
-  function handlePlaceClick(place: any, idx: number) {
-    if (!mapInstanceRef.current) return;
-    const { kakao } = window;
-    const position = new kakao.maps.LatLng(place.y, place.x);
-    mapInstanceRef.current.setCenter(position);
-    mapInstanceRef.current.setLevel(3);
+  function handlePlaceClick(idx: number) {
     highlightOverlay(idx);
   }
 
@@ -282,7 +250,7 @@ export function KakaoMap() {
           {places.map((place, i) => (
             <button
               key={i}
-              onClick={() => handlePlaceClick(place, i)}
+              onClick={() => handlePlaceClick(i)}
               className={`flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left transition-colors ${
                 selectedIdx === i ? "bg-blue-50 border-l-2 border-l-blue-500" : "hover:bg-zinc-50"
               }`}
