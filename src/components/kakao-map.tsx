@@ -23,15 +23,55 @@ function getCategoryStyle(code: CategoryCode) {
   return CATEGORIES.find((c) => c.code === code) ?? CATEGORIES[0];
 }
 
+// ~40m 이내 장소는 같은 클러스터로 묶음
+const CLUSTER_THRESHOLD = 0.0004;
+
+type ClusterGroup = {
+  items: { place: any; globalIdx: number }[];
+  lat: number;
+  lng: number;
+};
+
+function buildClusters(data: any[]): ClusterGroup[] {
+  const used = new Set<number>();
+  const clusters: ClusterGroup[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (used.has(i)) continue;
+    used.add(i);
+    const items = [{ place: data[i], globalIdx: i }];
+
+    for (let j = i + 1; j < data.length; j++) {
+      if (used.has(j)) continue;
+      if (
+        Math.abs(Number(data[i].y) - Number(data[j].y)) < CLUSTER_THRESHOLD &&
+        Math.abs(Number(data[i].x) - Number(data[j].x)) < CLUSTER_THRESHOLD
+      ) {
+        items.push({ place: data[j], globalIdx: j });
+        used.add(j);
+      }
+    }
+
+    const avgLat = items.reduce((s, it) => s + Number(it.place.y), 0) / items.length;
+    const avgLng = items.reduce((s, it) => s + Number(it.place.x), 0) / items.length;
+    clusters.push({ items, lat: avgLat, lng: avgLng });
+  }
+
+  return clusters;
+}
+
 export function KakaoMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CategoryCode>("FD6");
   const [places, setPlaces] = useState<any[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const overlaysRef = useRef<{ overlay: any; el: HTMLDivElement }[]>([]);
+  const clusterOverlaysRef = useRef<any[]>([]);
+  const popupOverlayRef = useRef<any>(null);
+  const highlightOverlayRef = useRef<any>(null);
   const mapInstanceRef = useRef<any>(null);
   const userPosRef = useRef<any>(null);
+  const activeCategoryRef = useRef<CategoryCode>("FD6");
 
   // SDK 로드
   useEffect(() => {
@@ -61,9 +101,10 @@ export function KakaoMap() {
     });
     mapInstanceRef.current = map;
 
-    // 지도 빈 곳 클릭 시 선택 해제
     kakao.maps.event.addListener(map, "click", () => {
-      resetOverlays();
+      closePopup();
+      clearHighlight();
+      setSelectedIdx(null);
     });
 
     if (navigator.geolocation) {
@@ -73,7 +114,6 @@ export function KakaoMap() {
           map.setCenter(userPos);
           userPosRef.current = userPos;
 
-          // 현재 위치 마커 (파란 원)
           new kakao.maps.CustomOverlay({
             map,
             position: userPos,
@@ -82,7 +122,6 @@ export function KakaoMap() {
             xAnchor: 0.5,
           });
 
-          // 초기 검색
           searchPlaces(map, userPos, "FD6");
         },
         () => {
@@ -93,37 +132,48 @@ export function KakaoMap() {
     }
   }, [loaded]);
 
-  function clearMarkers() {
-    overlaysRef.current.forEach((o) => o.overlay.setMap(null));
-    overlaysRef.current = [];
+  function clearAll() {
+    clusterOverlaysRef.current.forEach((o) => o.setMap(null));
+    clusterOverlaysRef.current = [];
+    closePopup();
+    clearHighlight();
   }
 
-  function createPlaceOverlay(
-    map: any,
-    position: any,
-    name: string,
-    category: CategoryCode,
-    idx: number
-  ) {
-    const { kakao } = window;
-    const style = getCategoryStyle(category);
+  function closePopup() {
+    if (popupOverlayRef.current) {
+      popupOverlayRef.current.setMap(null);
+      popupOverlayRef.current = null;
+    }
+  }
 
+  function clearHighlight() {
+    if (highlightOverlayRef.current) {
+      highlightOverlayRef.current.setMap(null);
+      highlightOverlayRef.current = null;
+    }
+  }
+
+  function selectPlace(place: any, globalIdx: number) {
+    const { kakao } = window;
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    closePopup();
+    clearHighlight();
+    setSelectedIdx(globalIdx);
+
+    const style = getCategoryStyle(activeCategoryRef.current);
+    const position = new kakao.maps.LatLng(place.y, place.x);
+
+    // 강조 오버레이 생성
     const el = document.createElement("div");
-    el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform 0.2s;";
+    el.style.cssText = "cursor:pointer;";
     el.innerHTML = `
-      <div class="place-bubble" style="display:flex;align-items:center;gap:4px;padding:4px 8px;background:white;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,0.12);border:1.5px solid ${style.color};white-space:nowrap;transition:all 0.2s;">
+      <div style="display:flex;align-items:center;gap:4px;padding:5px 12px;background:${style.color};border-radius:20px;box-shadow:0 4px 12px ${style.color}66;border:1.5px solid ${style.color};white-space:nowrap;">
         <span style="font-size:13px;line-height:1;">${style.icon}</span>
-        <span class="place-name" style="font-size:0;max-width:0;overflow:hidden;font-weight:600;color:#1a1a1a;transition:all 0.2s;opacity:0;">${name}</span>
+        <span style="font-size:11px;font-weight:600;color:white;max-width:140px;overflow:hidden;text-overflow:ellipsis;">${place.place_name}</span>
       </div>
     `;
-
-    el.addEventListener("click", () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.setCenter(position);
-        mapInstanceRef.current.setLevel(3);
-      }
-      highlightOverlay(idx);
-    });
 
     const overlay = new kakao.maps.CustomOverlay({
       map,
@@ -131,57 +181,113 @@ export function KakaoMap() {
       content: el,
       yAnchor: 0.5,
       xAnchor: 0.5,
-      zIndex: 1,
+      zIndex: 100,
     });
+    highlightOverlayRef.current = overlay;
 
-    return { overlay, el };
+    map.setLevel(3);
+    // 리스트에 가려지지 않도록 센터를 살짝 아래로 잡아 마커를 위쪽에 표시
+    const offsetCenter = new kakao.maps.LatLng(
+      Number(place.y) - 0.0008,
+      Number(place.x)
+    );
+    map.setCenter(offsetCenter);
   }
 
-  function highlightOverlay(idx: number) {
-    setSelectedIdx(idx);
-    overlaysRef.current.forEach((item, i) => {
-      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
-      const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      if (!bubble || !nameEl) return;
+  function showClusterPopup(cluster: ClusterGroup) {
+    const { kakao } = window;
+    const map = mapInstanceRef.current;
+    if (!map) return;
 
-      if (i === idx) {
-        const style = getCategoryStyle(activeCategory);
-        bubble.style.background = style.color;
-        bubble.style.borderColor = style.color;
-        bubble.style.boxShadow = `0 4px 12px ${style.color}66`;
-        nameEl.style.fontSize = "11px";
-        nameEl.style.maxWidth = "140px";
-        nameEl.style.opacity = "1";
-        nameEl.style.color = "white";
-        nameEl.style.marginLeft = "4px";
-        (item.overlay as any).setZIndex(100);
-      } else {
-        bubble.style.background = "white";
-        bubble.style.borderColor = getCategoryStyle(activeCategory).color;
-        bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
-        nameEl.style.fontSize = "0";
-        nameEl.style.maxWidth = "0";
-        nameEl.style.opacity = "0";
-        nameEl.style.marginLeft = "0";
-        (item.overlay as any).setZIndex(1);
-      }
-    });
-  }
-
-  function resetOverlays() {
+    closePopup();
+    clearHighlight();
     setSelectedIdx(null);
-    overlaysRef.current.forEach((item) => {
-      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
-      const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      if (!bubble || !nameEl) return;
-      bubble.style.background = "white";
-      bubble.style.borderColor = getCategoryStyle(activeCategory).color;
-      bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
-      nameEl.style.fontSize = "0";
-      nameEl.style.maxWidth = "0";
-      nameEl.style.opacity = "0";
-      nameEl.style.marginLeft = "0";
-      (item.overlay as any).setZIndex(1);
+
+    const style = getCategoryStyle(activeCategoryRef.current);
+    const position = new kakao.maps.LatLng(cluster.lat, cluster.lng);
+
+    const el = document.createElement("div");
+    el.style.cssText = `background:white;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.2);overflow:hidden;min-width:160px;max-width:220px;border:1.5px solid ${style.color};`;
+
+    const header = document.createElement("div");
+    header.style.cssText = `padding:8px 12px;background:${style.color};color:white;font-size:12px;font-weight:600;`;
+    header.textContent = `${style.icon} ${cluster.items.length}개 장소`;
+    el.appendChild(header);
+
+    cluster.items.forEach((item) => {
+      const row = document.createElement("div");
+      row.style.cssText = "padding:10px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #f4f4f5;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+      row.textContent = item.place.place_name;
+      row.addEventListener("mouseenter", () => { row.style.background = "#f4f4f5"; });
+      row.addEventListener("mouseleave", () => { row.style.background = "white"; });
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectPlace(item.place, item.globalIdx);
+      });
+      el.appendChild(row);
+    });
+
+    el.addEventListener("click", (e) => e.stopPropagation());
+
+    const overlay = new kakao.maps.CustomOverlay({
+      map,
+      position,
+      content: el,
+      yAnchor: 1.1,
+      xAnchor: 0.5,
+      zIndex: 200,
+    });
+    popupOverlayRef.current = overlay;
+  }
+
+  function renderClusters(map: any, data: any[], category: CategoryCode) {
+    const { kakao } = window;
+    const style = getCategoryStyle(category);
+    const clusters = buildClusters(data);
+
+    clusters.forEach((cluster) => {
+      const position = new kakao.maps.LatLng(cluster.lat, cluster.lng);
+
+      if (cluster.items.length === 1) {
+        // 단일 장소: 아이콘 버블
+        const el = document.createElement("div");
+        el.style.cssText = "cursor:pointer;";
+        el.innerHTML = `
+          <div style="display:flex;align-items:center;gap:4px;padding:4px 8px;background:white;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,0.12);border:1.5px solid ${style.color};white-space:nowrap;">
+            <span style="font-size:13px;line-height:1;">${style.icon}</span>
+          </div>
+        `;
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectPlace(cluster.items[0].place, cluster.items[0].globalIdx);
+        });
+
+        const overlay = new kakao.maps.CustomOverlay({
+          map, position, content: el,
+          yAnchor: 0.5, xAnchor: 0.5, zIndex: 1,
+        });
+        clusterOverlaysRef.current.push(overlay);
+      } else {
+        // 클러스터: 갯수 표시
+        const el = document.createElement("div");
+        el.style.cssText = "cursor:pointer;";
+        el.innerHTML = `
+          <div style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:${style.color};border-radius:20px;box-shadow:0 2px 8px ${style.color}44;white-space:nowrap;">
+            <span style="font-size:13px;line-height:1;">${style.icon}</span>
+            <span style="font-size:12px;font-weight:700;color:white;">${cluster.items.length}</span>
+          </div>
+        `;
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showClusterPopup(cluster);
+        });
+
+        const overlay = new kakao.maps.CustomOverlay({
+          map, position, content: el,
+          yAnchor: 0.5, xAnchor: 0.5, zIndex: 2,
+        });
+        clusterOverlaysRef.current.push(overlay);
+      }
     });
   }
 
@@ -189,7 +295,7 @@ export function KakaoMap() {
     const { kakao } = window;
     const ps = new kakao.maps.services.Places();
 
-    clearMarkers();
+    clearAll();
     setPlaces([]);
     setSelectedIdx(null);
 
@@ -200,17 +306,13 @@ export function KakaoMap() {
 
         setPlaces(data);
         const bounds = new kakao.maps.LatLngBounds();
-
-        data.forEach((place: any, i: number) => {
-          const position = new kakao.maps.LatLng(place.y, place.x);
-          bounds.extend(position);
-
-          const item = createPlaceOverlay(map, position, place.place_name, category, i);
-          overlaysRef.current.push(item);
+        data.forEach((place: any) => {
+          bounds.extend(new kakao.maps.LatLng(place.y, place.x));
         });
-
         if (userPosRef.current) bounds.extend(userPosRef.current);
         map.setBounds(bounds);
+
+        renderClusters(map, data, category);
       },
       {
         location: center,
@@ -222,19 +324,14 @@ export function KakaoMap() {
 
   function handleCategoryClick(code: CategoryCode) {
     setActiveCategory(code);
+    activeCategoryRef.current = code;
     if (mapInstanceRef.current && userPosRef.current) {
       searchPlaces(mapInstanceRef.current, userPosRef.current, code);
     }
   }
 
   function handlePlaceClick(idx: number) {
-    if (!mapInstanceRef.current) return;
-    const { kakao } = window;
-    const place = places[idx];
-    const position = new kakao.maps.LatLng(place.y, place.x);
-    mapInstanceRef.current.setCenter(position);
-    mapInstanceRef.current.setLevel(3);
-    highlightOverlay(idx);
+    selectPlace(places[idx], idx);
   }
 
   return (
