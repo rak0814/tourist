@@ -72,7 +72,7 @@ export function KakaoMap() {
   const mapInstanceRef = useRef<any>(null);
   const userPosRef = useRef<any>(null);
   const activeCategoryRef = useRef<CategoryCode>("FD6");
-  const skipMapClickRef = useRef(false);
+  const lastActionRef = useRef(0);
 
   // SDK 로드
   useEffect(() => {
@@ -103,10 +103,7 @@ export function KakaoMap() {
     mapInstanceRef.current = map;
 
     kakao.maps.event.addListener(map, "click", () => {
-      if (skipMapClickRef.current) {
-        skipMapClickRef.current = false;
-        return;
-      }
+      if (Date.now() - lastActionRef.current < 300) return;
       closePopup();
       clearHighlight();
       setSelectedIdx(null);
@@ -163,6 +160,7 @@ export function KakaoMap() {
     const map = mapInstanceRef.current;
     if (!map) return;
 
+    lastActionRef.current = Date.now();
     closePopup();
     clearHighlight();
     setSelectedIdx(globalIdx);
@@ -191,13 +189,9 @@ export function KakaoMap() {
     });
     highlightOverlayRef.current = overlay;
 
-    map.setLevel(3);
-    // 리스트에 가려지지 않도록 센터를 살짝 아래로 잡아 마커를 위쪽에 표시
-    const offsetCenter = new kakao.maps.LatLng(
-      Number(place.y) - 0.0008,
-      Number(place.x)
-    );
-    map.setCenter(offsetCenter);
+    // 센터 잡고 하단 리스트만큼 위로 올림 (픽셀 단위라 줌 레벨 무관)
+    map.setCenter(position);
+    map.panBy(0, 60);
   }
 
   function showClusterPopup(cluster: ClusterGroup) {
@@ -234,7 +228,7 @@ export function KakaoMap() {
       row.addEventListener("mouseleave", () => { row.style.background = "white"; });
       row.addEventListener("click", (e) => {
         e.stopPropagation();
-        skipMapClickRef.current = true;
+        lastActionRef.current = Date.now();
         selectPlace(place, idx);
       });
       listWrap.appendChild(row);
@@ -253,12 +247,9 @@ export function KakaoMap() {
     });
     popupOverlayRef.current = overlay;
 
-    // 팝업 영역까지 포함해서 센터 잡기 (위로 올려서 잘리지 않게)
-    const offsetCenter = new kakao.maps.LatLng(
-      cluster.lat + 0.0012,
-      cluster.lng
-    );
-    map.setCenter(offsetCenter);
+    // 팝업이 잘리지 않도록 센터 잡고 위로 올림 (픽셀 단위)
+    map.setCenter(position);
+    map.panBy(0, -80);
   }
 
   function renderClusters(map: any, data: any[], category: CategoryCode) {
@@ -280,6 +271,7 @@ export function KakaoMap() {
         `;
         el.addEventListener("click", (e) => {
           e.stopPropagation();
+          lastActionRef.current = Date.now();
           selectPlace(cluster.items[0].place, cluster.items[0].globalIdx);
         });
 
@@ -300,6 +292,7 @@ export function KakaoMap() {
         `;
         el.addEventListener("click", (e) => {
           e.stopPropagation();
+          lastActionRef.current = Date.now();
           showClusterPopup(cluster);
         });
 
