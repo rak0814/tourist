@@ -118,6 +118,10 @@ export function KakaoMap() {
     `;
 
     el.addEventListener("click", () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setCenter(position);
+        mapInstanceRef.current.setLevel(3);
+      }
       highlightOverlay(idx);
     });
 
