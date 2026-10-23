@@ -102,73 +102,40 @@ export function KakaoMap() {
     lastActionRef.current = Date.now();
     setSelectedIdx(idx);
 
-    const style = getCategoryStyle(activeCategoryRef.current);
-
     overlaysRef.current.forEach((item, i) => {
+      const nameWrap = item.el.querySelector(".place-name-wrap") as HTMLElement;
       const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
-      const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      const arrow = item.el.querySelector(".place-arrow") as HTMLElement;
-      if (!bubble || !nameEl || !arrow) return;
+      if (!nameWrap || !bubble) return;
 
       if (i === idx) {
-        // 선택: 강조 + 이름 + 화살표
-        bubble.style.background = style.color;
-        bubble.style.borderColor = style.color;
-        bubble.style.boxShadow = `0 4px 12px ${style.color}66`;
+        nameWrap.style.display = "flex";
         bubble.style.opacity = "1";
-        nameEl.style.fontSize = "11px";
-        nameEl.style.maxWidth = "140px";
-        nameEl.style.opacity = "1";
-        nameEl.style.color = "white";
-        nameEl.style.marginLeft = "4px";
-        arrow.style.borderTopColor = style.color;
-        arrow.style.display = "block";
         (item.overlay as any).setZIndex(100);
       } else {
-        // 비선택: 연하게
-        bubble.style.background = "white";
-        bubble.style.borderColor = style.color;
-        bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
+        nameWrap.style.display = "none";
         bubble.style.opacity = "0.4";
-        nameEl.style.fontSize = "0";
-        nameEl.style.maxWidth = "0";
-        nameEl.style.opacity = "0";
-        nameEl.style.marginLeft = "0";
-        arrow.style.display = "none";
         (item.overlay as any).setZIndex(1);
       }
     });
 
-    // 이름 펼쳐진 후 센터 이동 (레이아웃 반영 대기)
     const map = mapInstanceRef.current;
     if (map && overlaysRef.current[idx]) {
       const pos = (overlaysRef.current[idx].overlay as any).getPosition();
-      requestAnimationFrame(() => {
-        map.setCenter(pos);
-        map.panBy(0, 60);
-      });
+      map.setCenter(pos);
+      map.panBy(0, 60);
     }
   }
 
   function resetOverlays() {
     setSelectedIdx(null);
-    const style = getCategoryStyle(activeCategoryRef.current);
 
     overlaysRef.current.forEach((item) => {
+      const nameWrap = item.el.querySelector(".place-name-wrap") as HTMLElement;
       const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
-      const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      const arrow = item.el.querySelector(".place-arrow") as HTMLElement;
-      if (!bubble || !nameEl || !arrow) return;
+      if (!nameWrap || !bubble) return;
 
-      bubble.style.background = "white";
-      bubble.style.borderColor = style.color;
-      bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
+      nameWrap.style.display = "none";
       bubble.style.opacity = "1";
-      nameEl.style.fontSize = "0";
-      nameEl.style.maxWidth = "0";
-      nameEl.style.opacity = "0";
-      nameEl.style.marginLeft = "0";
-      arrow.style.display = "none";
       (item.overlay as any).setZIndex(1);
     });
   }
@@ -197,11 +164,15 @@ export function KakaoMap() {
           const el = document.createElement("div");
           el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
           el.innerHTML = `
-            <div class="place-bubble" style="display:flex;align-items:center;gap:4px;padding:4px 8px;background:white;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,0.12);border:1.5px solid ${style.color};white-space:nowrap;transition:all 0.15s;">
-              <span style="font-size:13px;line-height:1;">${style.icon}</span>
-              <span class="place-name" style="font-size:0;max-width:0;overflow:hidden;font-weight:600;color:#1a1a1a;transition:all 0.15s;opacity:0;">${place.place_name}</span>
+            <div class="place-name-wrap" style="display:none;flex-direction:column;align-items:center;margin-bottom:2px;">
+              <div class="place-name-bubble" style="padding:4px 10px;background:${style.color};border-radius:8px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;">
+                <span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span>
+              </div>
+              <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${style.color};"></div>
             </div>
-            <div class="place-arrow" style="display:none;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${style.color};"></div>
+            <div class="place-bubble" style="display:flex;align-items:center;padding:4px 8px;background:white;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,0.12);border:1.5px solid ${style.color};transition:all 0.15s;">
+              <span style="font-size:13px;line-height:1;">${style.icon}</span>
+            </div>
           `;
 
           el.addEventListener("click", (e) => {
