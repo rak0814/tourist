@@ -72,6 +72,7 @@ export function KakaoMap() {
   const mapInstanceRef = useRef<any>(null);
   const userPosRef = useRef<any>(null);
   const activeCategoryRef = useRef<CategoryCode>("FD6");
+  const skipMapClickRef = useRef(false);
 
   // SDK 로드
   useEffect(() => {
@@ -102,6 +103,10 @@ export function KakaoMap() {
     mapInstanceRef.current = map;
 
     kakao.maps.event.addListener(map, "click", () => {
+      if (skipMapClickRef.current) {
+        skipMapClickRef.current = false;
+        return;
+      }
       closePopup();
       clearHighlight();
       setSelectedIdx(null);
@@ -215,6 +220,10 @@ export function KakaoMap() {
     header.textContent = `${style.icon} ${cluster.items.length}개 장소`;
     el.appendChild(header);
 
+    // 리스트 영역: 4개까지만 보이고 나머지 스크롤
+    const listWrap = document.createElement("div");
+    listWrap.style.cssText = "max-height:168px;overflow-y:auto;";
+
     cluster.items.forEach((item) => {
       const place = { ...item.place };
       const idx = item.globalIdx;
@@ -225,22 +234,31 @@ export function KakaoMap() {
       row.addEventListener("mouseleave", () => { row.style.background = "white"; });
       row.addEventListener("click", (e) => {
         e.stopPropagation();
-        setTimeout(() => selectPlace(place, idx), 0);
+        skipMapClickRef.current = true;
+        selectPlace(place, idx);
       });
-      el.appendChild(row);
+      listWrap.appendChild(row);
     });
 
+    el.appendChild(listWrap);
     el.addEventListener("click", (e) => e.stopPropagation());
 
     const overlay = new kakao.maps.CustomOverlay({
       map,
       position,
       content: el,
-      yAnchor: 1.1,
+      yAnchor: 1.15,
       xAnchor: 0.5,
       zIndex: 200,
     });
     popupOverlayRef.current = overlay;
+
+    // 팝업 영역까지 포함해서 센터 잡기 (위로 올려서 잘리지 않게)
+    const offsetCenter = new kakao.maps.LatLng(
+      cluster.lat + 0.0012,
+      cluster.lng
+    );
+    map.setCenter(offsetCenter);
   }
 
   function renderClusters(map: any, data: any[], category: CategoryCode) {
