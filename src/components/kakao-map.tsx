@@ -224,6 +224,12 @@ export function KakaoMap() {
   }
 
   function handlePlaceClick(idx: number) {
+    if (!mapInstanceRef.current) return;
+    const { kakao } = window;
+    const place = places[idx];
+    const position = new kakao.maps.LatLng(place.y, place.x);
+    mapInstanceRef.current.setCenter(position);
+    mapInstanceRef.current.setLevel(3);
     highlightOverlay(idx);
   }
 
