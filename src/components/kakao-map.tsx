@@ -29,7 +29,8 @@ export function KakaoMap() {
   const [activeCategory, setActiveCategory] = useState<CategoryCode>("FD6");
   const [places, setPlaces] = useState<any[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const overlaysRef = useRef<{ overlay: any; el: HTMLDivElement }[]>([]);
+  const dotsRef = useRef<any[]>([]);
+  const nameOverlaysRef = useRef<any[]>([]);
   const mapInstanceRef = useRef<any>(null);
   const userPosRef = useRef<any>(null);
   const activeCategoryRef = useRef<CategoryCode>("FD6");
@@ -94,30 +95,29 @@ export function KakaoMap() {
   }, [loaded]);
 
   function clearOverlays() {
-    overlaysRef.current.forEach((o) => o.overlay.setMap(null));
-    overlaysRef.current = [];
+    dotsRef.current.forEach((o) => o.setMap(null));
+    nameOverlaysRef.current.forEach((o) => o.setMap(null));
+    dotsRef.current = [];
+    nameOverlaysRef.current = [];
   }
 
   function highlightOverlay(idx: number) {
     lastActionRef.current = Date.now();
     setSelectedIdx(idx);
 
-    overlaysRef.current.forEach((item, i) => {
-      const nameWrap = item.el.querySelector(".place-name-wrap") as HTMLElement;
-      if (!nameWrap) return;
-
+    // 모든 상호명 숨기고 선택된 것만 표시
+    nameOverlaysRef.current.forEach((o, i) => {
       if (i === idx) {
-        nameWrap.style.display = "flex";
-        (item.overlay as any).setZIndex(100);
+        o.setMap(mapInstanceRef.current);
+        o.setZIndex(100);
       } else {
-        nameWrap.style.display = "none";
-        (item.overlay as any).setZIndex(1);
+        o.setMap(null);
       }
     });
 
     const map = mapInstanceRef.current;
-    if (map && overlaysRef.current[idx]) {
-      const pos = (overlaysRef.current[idx].overlay as any).getPosition();
+    if (map && dotsRef.current[idx]) {
+      const pos = dotsRef.current[idx].getPosition();
       map.setCenter(pos);
       map.panBy(0, 60);
     }
@@ -125,13 +125,7 @@ export function KakaoMap() {
 
   function resetOverlays() {
     setSelectedIdx(null);
-
-    overlaysRef.current.forEach((item) => {
-      const nameWrap = item.el.querySelector(".place-name-wrap") as HTMLElement;
-      if (!nameWrap) return;
-      nameWrap.style.display = "none";
-      (item.overlay as any).setZIndex(1);
-    });
+    nameOverlaysRef.current.forEach((o) => o.setMap(null));
   }
 
   function searchPlaces(map: any, center: any, category: CategoryCode) {
@@ -155,25 +149,31 @@ export function KakaoMap() {
           const position = new kakao.maps.LatLng(place.y, place.x);
           bounds.extend(position);
 
-          const el = document.createElement("div");
-          el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
-          el.innerHTML = `<div class="place-name-wrap" style="display:none;flex-direction:column;align-items:center;"><div style="padding:2px 8px;background:${style.color};border-radius:6px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;line-height:16px;"><span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid ${style.color};"></div></div><div class="place-dot" style="width:12px;height:12px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>`;
-
-          el.addEventListener("click", (e) => {
+          // 점 오버레이 (항상 표시)
+          const dotEl = document.createElement("div");
+          dotEl.style.cssText = "cursor:pointer;";
+          dotEl.innerHTML = `<div style="width:12px;height:12px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>`;
+          dotEl.addEventListener("click", (e) => {
             e.stopPropagation();
             highlightOverlay(i);
           });
 
-          const overlay = new kakao.maps.CustomOverlay({
-            map,
-            position,
-            content: el,
-            yAnchor: 1,
-            xAnchor: 0.5,
-            zIndex: 1,
+          const dotOverlay = new kakao.maps.CustomOverlay({
+            map, position, content: dotEl,
+            yAnchor: 0.5, xAnchor: 0.5, zIndex: 1,
           });
+          dotsRef.current.push(dotOverlay);
 
-          overlaysRef.current.push({ overlay, el });
+          // 상호명 오버레이 (선택 시에만 표시)
+          const nameEl = document.createElement("div");
+          nameEl.style.cssText = "display:flex;flex-direction:column;align-items:center;";
+          nameEl.innerHTML = `<div style="padding:2px 8px;background:${style.color};border-radius:6px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;line-height:16px;"><span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid ${style.color};"></div>`;
+
+          const nameOverlay = new kakao.maps.CustomOverlay({
+            position, content: nameEl,
+            yAnchor: 1, xAnchor: 0.5, zIndex: 100,
+          });
+          nameOverlaysRef.current.push(nameOverlay);
         });
 
         if (userPosRef.current) bounds.extend(userPosRef.current);
