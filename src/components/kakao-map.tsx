@@ -139,12 +139,14 @@ export function KakaoMap() {
       }
     });
 
-    // 센터 이동
+    // 이름 펼쳐진 후 센터 이동 (레이아웃 반영 대기)
     const map = mapInstanceRef.current;
     if (map && overlaysRef.current[idx]) {
       const pos = (overlaysRef.current[idx].overlay as any).getPosition();
-      map.setCenter(pos);
-      map.panBy(0, 60);
+      requestAnimationFrame(() => {
+        map.setCenter(pos);
+        map.panBy(0, 60);
+      });
     }
   }
 
