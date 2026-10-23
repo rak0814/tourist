@@ -104,16 +104,13 @@ export function KakaoMap() {
 
     overlaysRef.current.forEach((item, i) => {
       const nameWrap = item.el.querySelector(".place-name-wrap") as HTMLElement;
-      const dot = item.el.querySelector(".place-dot") as HTMLElement;
-      if (!nameWrap || !dot) return;
+      if (!nameWrap) return;
 
       if (i === idx) {
         nameWrap.style.display = "flex";
-        dot.style.opacity = "1";
         (item.overlay as any).setZIndex(100);
       } else {
         nameWrap.style.display = "none";
-        dot.style.opacity = "0.4";
         (item.overlay as any).setZIndex(1);
       }
     });
@@ -131,11 +128,8 @@ export function KakaoMap() {
 
     overlaysRef.current.forEach((item) => {
       const nameWrap = item.el.querySelector(".place-name-wrap") as HTMLElement;
-      const dot = item.el.querySelector(".place-dot") as HTMLElement;
-      if (!nameWrap || !dot) return;
-
+      if (!nameWrap) return;
       nameWrap.style.display = "none";
-      dot.style.opacity = "1";
       (item.overlay as any).setZIndex(1);
     });
   }
@@ -162,8 +156,8 @@ export function KakaoMap() {
           bounds.extend(position);
 
           const el = document.createElement("div");
-          el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;gap:0;margin:0;padding:0;line-height:0;";
-          el.innerHTML = `<div class="place-name-wrap" style="display:none;flex-direction:column;align-items:center;gap:0;margin:0;padding:0;line-height:0;"><div style="padding:3px 8px;background:${style.color};border-radius:6px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;line-height:normal;"><span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid ${style.color};margin:0;padding:0;"></div></div><div class="place-dot" style="width:12px;height:12px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:opacity 0.15s;margin:0;padding:0;"></div>`;
+          el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
+          el.innerHTML = `<div class="place-name-wrap" style="display:none;flex-direction:column;align-items:center;"><div style="padding:2px 8px;background:${style.color};border-radius:6px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;line-height:16px;"><span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid ${style.color};"></div></div><div class="place-dot" style="width:12px;height:12px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>`;
 
           el.addEventListener("click", (e) => {
             e.stopPropagation();
