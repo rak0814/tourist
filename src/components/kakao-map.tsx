@@ -115,8 +115,6 @@ export function KakaoMap() {
         <span style="font-size:13px;line-height:1;">${style.icon}</span>
         <span class="place-name" style="font-size:0;max-width:0;overflow:hidden;font-weight:600;color:#1a1a1a;transition:all 0.2s;opacity:0;">${name}</span>
       </div>
-      <div style="width:2px;height:6px;background:${style.color};"></div>
-      <div style="width:6px;height:6px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
     `;
 
     el.addEventListener("click", () => {
@@ -127,7 +125,7 @@ export function KakaoMap() {
       map,
       position,
       content: el,
-      yAnchor: 1,
+      yAnchor: 0.5,
       xAnchor: 0.5,
       zIndex: 1,
     });
@@ -138,16 +136,25 @@ export function KakaoMap() {
   function highlightOverlay(idx: number) {
     setSelectedIdx(idx);
     overlaysRef.current.forEach((item, i) => {
+      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
       const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      if (!nameEl) return;
+      if (!bubble || !nameEl) return;
 
       if (i === idx) {
+        const style = getCategoryStyle(activeCategory);
+        bubble.style.background = style.color;
+        bubble.style.borderColor = style.color;
+        bubble.style.boxShadow = `0 4px 12px ${style.color}66`;
         nameEl.style.fontSize = "11px";
         nameEl.style.maxWidth = "140px";
         nameEl.style.opacity = "1";
+        nameEl.style.color = "white";
         nameEl.style.marginLeft = "4px";
         (item.overlay as any).setZIndex(100);
       } else {
+        bubble.style.background = "white";
+        bubble.style.borderColor = getCategoryStyle(activeCategory).color;
+        bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
         nameEl.style.fontSize = "0";
         nameEl.style.maxWidth = "0";
         nameEl.style.opacity = "0";
@@ -160,8 +167,12 @@ export function KakaoMap() {
   function resetOverlays() {
     setSelectedIdx(null);
     overlaysRef.current.forEach((item) => {
+      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
       const nameEl = item.el.querySelector(".place-name") as HTMLElement;
-      if (!nameEl) return;
+      if (!bubble || !nameEl) return;
+      bubble.style.background = "white";
+      bubble.style.borderColor = getCategoryStyle(activeCategory).color;
+      bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
       nameEl.style.fontSize = "0";
       nameEl.style.maxWidth = "0";
       nameEl.style.opacity = "0";
