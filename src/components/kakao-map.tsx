@@ -28,7 +28,8 @@ export function KakaoMap() {
   const [loaded, setLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CategoryCode>("FD6");
   const [places, setPlaces] = useState<any[]>([]);
-  const overlaysRef = useRef<any[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const overlaysRef = useRef<{ overlay: any; el: HTMLDivElement }[]>([]);
   const mapInstanceRef = useRef<any>(null);
   const userPosRef = useRef<any>(null);
 
@@ -60,6 +61,11 @@ export function KakaoMap() {
     });
     mapInstanceRef.current = map;
 
+    // 지도 빈 곳 클릭 시 선택 해제
+    kakao.maps.event.addListener(map, "click", () => {
+      resetOverlays();
+    });
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -88,7 +94,7 @@ export function KakaoMap() {
   }, [loaded]);
 
   function clearMarkers() {
-    overlaysRef.current.forEach((o) => o.setMap(null));
+    overlaysRef.current.forEach((o) => o.overlay.setMap(null));
     overlaysRef.current = [];
   }
 
@@ -96,31 +102,99 @@ export function KakaoMap() {
     map: any,
     position: any,
     name: string,
-    category: CategoryCode
+    category: CategoryCode,
+    idx: number
   ) {
     const { kakao } = window;
     const style = getCategoryStyle(category);
 
-    const content = document.createElement("div");
-    content.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
-    content.innerHTML = `
-      <div style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:white;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15);border:1.5px solid ${style.color};white-space:nowrap;">
-        <span style="font-size:14px;line-height:1;">${style.icon}</span>
-        <span style="font-size:11px;font-weight:600;color:#1a1a1a;max-width:120px;overflow:hidden;text-overflow:ellipsis;">${name}</span>
+    const el = document.createElement("div");
+    el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform 0.2s;";
+    el.innerHTML = `
+      <div class="place-bubble" style="display:flex;align-items:center;gap:4px;padding:4px 8px;background:white;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,0.12);border:1.5px solid ${style.color};white-space:nowrap;transition:all 0.2s;">
+        <span style="font-size:13px;line-height:1;">${style.icon}</span>
+        <span class="place-name" style="font-size:0;max-width:0;overflow:hidden;font-weight:600;color:#1a1a1a;transition:all 0.2s;opacity:0;">${name}</span>
       </div>
-      <div style="width:2px;height:8px;background:${style.color};"></div>
-      <div style="width:8px;height:8px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+      <div style="width:2px;height:6px;background:${style.color};"></div>
+      <div style="width:6px;height:6px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
     `;
+
+    el.addEventListener("click", () => {
+      highlightOverlay(idx);
+    });
 
     const overlay = new kakao.maps.CustomOverlay({
       map,
       position,
-      content,
+      content: el,
       yAnchor: 1,
       xAnchor: 0.5,
+      zIndex: 1,
     });
 
-    return overlay;
+    return { overlay, el };
+  }
+
+  function highlightOverlay(idx: number) {
+    setSelectedIdx(idx);
+    overlaysRef.current.forEach((item, i) => {
+      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
+      const nameEl = item.el.querySelector(".place-name") as HTMLElement;
+      if (!bubble || !nameEl) return;
+
+      if (i === idx) {
+        // 선택된 오버레이: 확대 + 이름 표시 + 색상 배경
+        const style = getCategoryStyle(activeCategory);
+        item.el.style.transform = "scale(1.15)";
+        item.el.style.zIndex = "100";
+        bubble.style.background = style.color;
+        bubble.style.borderColor = style.color;
+        bubble.style.boxShadow = `0 4px 12px ${style.color}66`;
+        bubble.style.padding = "5px 12px";
+        nameEl.style.fontSize = "12px";
+        nameEl.style.maxWidth = "140px";
+        nameEl.style.opacity = "1";
+        nameEl.style.color = "white";
+        nameEl.style.marginLeft = "4px";
+        // 아이콘 내 이모지는 그대로
+        (item.overlay as any).setZIndex(100);
+      } else {
+        // 비선택 오버레이: 축소 + 이름 숨김
+        item.el.style.transform = "scale(0.85)";
+        item.el.style.zIndex = "1";
+        item.el.style.opacity = "0.6";
+        bubble.style.background = "white";
+        bubble.style.borderColor = getCategoryStyle(activeCategory).color;
+        bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
+        bubble.style.padding = "4px 8px";
+        nameEl.style.fontSize = "0";
+        nameEl.style.maxWidth = "0";
+        nameEl.style.opacity = "0";
+        nameEl.style.marginLeft = "0";
+        (item.overlay as any).setZIndex(1);
+      }
+    });
+  }
+
+  function resetOverlays() {
+    setSelectedIdx(null);
+    overlaysRef.current.forEach((item) => {
+      const bubble = item.el.querySelector(".place-bubble") as HTMLElement;
+      const nameEl = item.el.querySelector(".place-name") as HTMLElement;
+      if (!bubble || !nameEl) return;
+      item.el.style.transform = "scale(1)";
+      item.el.style.zIndex = "1";
+      item.el.style.opacity = "1";
+      bubble.style.background = "white";
+      bubble.style.borderColor = getCategoryStyle(activeCategory).color;
+      bubble.style.boxShadow = "0 1px 4px rgba(0,0,0,0.12)";
+      bubble.style.padding = "4px 8px";
+      nameEl.style.fontSize = "0";
+      nameEl.style.maxWidth = "0";
+      nameEl.style.opacity = "0";
+      nameEl.style.marginLeft = "0";
+      (item.overlay as any).setZIndex(1);
+    });
   }
 
   function searchPlaces(map: any, center: any, category: CategoryCode) {
@@ -129,6 +203,7 @@ export function KakaoMap() {
 
     clearMarkers();
     setPlaces([]);
+    setSelectedIdx(null);
 
     ps.categorySearch(
       category,
@@ -138,12 +213,12 @@ export function KakaoMap() {
         setPlaces(data);
         const bounds = new kakao.maps.LatLngBounds();
 
-        data.forEach((place: any) => {
+        data.forEach((place: any, i: number) => {
           const position = new kakao.maps.LatLng(place.y, place.x);
           bounds.extend(position);
 
-          const overlay = createPlaceOverlay(map, position, place.place_name, category);
-          overlaysRef.current.push(overlay);
+          const item = createPlaceOverlay(map, position, place.place_name, category, i);
+          overlaysRef.current.push(item);
         });
 
         if (userPosRef.current) bounds.extend(userPosRef.current);
@@ -164,12 +239,13 @@ export function KakaoMap() {
     }
   }
 
-  function handlePlaceClick(place: any) {
+  function handlePlaceClick(place: any, idx: number) {
     if (!mapInstanceRef.current) return;
     const { kakao } = window;
     const position = new kakao.maps.LatLng(place.y, place.x);
     mapInstanceRef.current.setCenter(position);
     mapInstanceRef.current.setLevel(3);
+    highlightOverlay(idx);
   }
 
   return (
@@ -206,8 +282,10 @@ export function KakaoMap() {
           {places.map((place, i) => (
             <button
               key={i}
-              onClick={() => handlePlaceClick(place)}
-              className="flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left hover:bg-zinc-50 transition-colors"
+              onClick={() => handlePlaceClick(place, i)}
+              className={`flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left transition-colors ${
+                selectedIdx === i ? "bg-blue-50 border-l-2 border-l-blue-500" : "hover:bg-zinc-50"
+              }`}
             >
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
                 {i + 1}
