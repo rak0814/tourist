@@ -162,8 +162,8 @@ export function KakaoMap() {
           bounds.extend(position);
 
           const el = document.createElement("div");
-          el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
-          el.innerHTML = `<div class="place-name-wrap" style="display:none;flex-direction:column;align-items:center;"><div style="padding:4px 10px;background:${style.color};border-radius:8px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;"><span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span></div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${style.color};"></div></div><div class="place-dot" style="width:12px;height:12px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:opacity 0.15s;"></div>`;
+          el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;gap:0;margin:0;padding:0;line-height:0;";
+          el.innerHTML = `<div class="place-name-wrap" style="display:none;flex-direction:column;align-items:center;gap:0;margin:0;padding:0;line-height:0;"><div style="padding:3px 8px;background:${style.color};border-radius:6px;box-shadow:0 2px 8px ${style.color}66;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;line-height:normal;"><span style="font-size:11px;font-weight:600;color:white;">${place.place_name}</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid ${style.color};margin:0;padding:0;"></div></div><div class="place-dot" style="width:12px;height:12px;background:${style.color};border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:opacity 0.15s;margin:0;padding:0;"></div>`;
 
           el.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -219,7 +219,7 @@ export function KakaoMap() {
                 : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
             }`}
           >
-            {cat.label}
+            {cat.icon} {cat.label}
           </button>
         ))}
       </div>
