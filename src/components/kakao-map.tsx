@@ -165,21 +165,22 @@ export function KakaoMap() {
     const style = getCategoryStyle(activeCategoryRef.current);
     const position = new kakao.maps.LatLng(place.y, place.x);
 
-    // 강조 오버레이 생성
+    // 강조 오버레이 생성 (말풍선 + 화살표)
     const el = document.createElement("div");
-    el.style.cssText = "cursor:pointer;";
+    el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
     el.innerHTML = `
       <div style="display:flex;align-items:center;gap:4px;padding:5px 12px;background:${style.color};border-radius:20px;box-shadow:0 4px 12px ${style.color}66;border:1.5px solid ${style.color};white-space:nowrap;">
         <span style="font-size:13px;line-height:1;">${style.icon}</span>
         <span style="font-size:11px;font-weight:600;color:white;max-width:140px;overflow:hidden;text-overflow:ellipsis;">${place.place_name}</span>
       </div>
+      <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${style.color};"></div>
     `;
 
     const overlay = new kakao.maps.CustomOverlay({
       map,
       position,
       content: el,
-      yAnchor: 0.5,
+      yAnchor: 1,
       xAnchor: 0.5,
       zIndex: 100,
     });
@@ -215,14 +216,16 @@ export function KakaoMap() {
     el.appendChild(header);
 
     cluster.items.forEach((item) => {
+      const place = { ...item.place };
+      const idx = item.globalIdx;
       const row = document.createElement("div");
       row.style.cssText = "padding:10px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #f4f4f5;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
-      row.textContent = item.place.place_name;
+      row.textContent = place.place_name;
       row.addEventListener("mouseenter", () => { row.style.background = "#f4f4f5"; });
       row.addEventListener("mouseleave", () => { row.style.background = "white"; });
       row.addEventListener("click", (e) => {
         e.stopPropagation();
-        selectPlace(item.place, item.globalIdx);
+        setTimeout(() => selectPlace(place, idx), 0);
       });
       el.appendChild(row);
     });
