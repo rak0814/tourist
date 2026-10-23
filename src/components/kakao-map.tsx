@@ -24,7 +24,6 @@ export function KakaoMap() {
   const [loaded, setLoaded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CategoryCode>("FD6");
   const [places, setPlaces] = useState<any[]>([]);
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const markersRef = useRef<any[]>([]);
   const overlaysRef = useRef<any[]>([]);
   const mapInstanceRef = useRef<any>(null);
@@ -98,7 +97,6 @@ export function KakaoMap() {
 
     clearMarkers();
     setPlaces([]);
-    setSelectedIdx(null);
 
     ps.categorySearch(
       category,
@@ -106,12 +104,13 @@ export function KakaoMap() {
         if (status !== kakao.maps.services.Status.OK) return;
 
         setPlaces(data);
+        const bounds = new kakao.maps.LatLngBounds();
 
-        // 마커와 오버레이를 미리 생성하되 지도에 표시하지 않음
         data.forEach((place: any) => {
           const position = new kakao.maps.LatLng(place.y, place.x);
+          bounds.extend(position);
 
-          const marker = new kakao.maps.Marker({ position });
+          const marker = new kakao.maps.Marker({ map, position });
           markersRef.current.push(marker);
 
           const overlay = new kakao.maps.CustomOverlay({
@@ -120,7 +119,15 @@ export function KakaoMap() {
             yAnchor: 2.2,
           });
           overlaysRef.current.push(overlay);
+
+          kakao.maps.event.addListener(marker, "click", () => {
+            overlaysRef.current.forEach((o) => o.setMap(null));
+            overlay.setMap(map);
+          });
         });
+
+        if (userPosRef.current) bounds.extend(userPosRef.current);
+        map.setBounds(bounds);
       },
       {
         location: center,
@@ -137,27 +144,18 @@ export function KakaoMap() {
     }
   }
 
-  function handlePlaceClick(place: any, idx: number) {
+  function handlePlaceClick(place: any) {
     if (!mapInstanceRef.current) return;
     const { kakao } = window;
-    const map = mapInstanceRef.current;
     const position = new kakao.maps.LatLng(place.y, place.x);
+    mapInstanceRef.current.setCenter(position);
+    mapInstanceRef.current.setLevel(3);
 
-    // 기존 마커/오버레이 숨기기
-    markersRef.current.forEach((m) => m.setMap(null));
     overlaysRef.current.forEach((o) => o.setMap(null));
-
-    // 선택한 마커와 오버레이만 표시
-    if (markersRef.current[idx]) {
-      markersRef.current[idx].setMap(map);
+    const idx = places.indexOf(place);
+    if (idx >= 0 && overlaysRef.current[idx]) {
+      overlaysRef.current[idx].setMap(mapInstanceRef.current);
     }
-    if (overlaysRef.current[idx]) {
-      overlaysRef.current[idx].setMap(map);
-    }
-
-    setSelectedIdx(idx);
-    map.setCenter(position);
-    map.setLevel(3);
   }
 
   return (
@@ -194,10 +192,8 @@ export function KakaoMap() {
           {places.map((place, i) => (
             <button
               key={i}
-              onClick={() => handlePlaceClick(place, i)}
-              className={`flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left transition-colors ${
-                selectedIdx === i ? "bg-blue-50" : "hover:bg-zinc-50"
-              }`}
+              onClick={() => handlePlaceClick(place)}
+              className="flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left hover:bg-zinc-50 transition-colors"
             >
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
                 {i + 1}
